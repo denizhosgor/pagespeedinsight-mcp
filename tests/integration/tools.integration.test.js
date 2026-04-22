@@ -1,0 +1,75 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import { comparePagespeedTool, runPagespeedTool } from "../../src/server.js";
+import { makePsiPayload } from "../helpers/psi-fixtures.js";
+
+const originalFetch = global.fetch;
+
+function mockOkJson(payload) {
+  return {
+    ok: true,
+    status: 200,
+    json: async () => payload,
+    text: async () => JSON.stringify(payload)
+  };
+}
+
+describe("tool handlers", () => {
+  beforeEach(() => {
+    process.env.PAGESPEEDINSIGHT_API_KEY = "";
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+    vi.restoreAllMocks();
+  });
+
+  it("runPagespeedTool returns summary and raw when include_raw is true", async () => {
+    const payload = makePsiPayload({ performanceScore: 0.73 });
+    global.fetch.mockResolvedValue(mockOkJson(payload));
+
+    const result = await runPagespeedTool({
+      url: "ikinokta360.com",
+      strategy: "mobile",
+      locale: "tr-TR",
+      include_raw: true
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const requestUrl = new URL(global.fetch.mock.calls[0][0]);
+    expect(requestUrl.searchParams.get("url")).toBe("https://ikinokta360.com");
+    expect(requestUrl.searchParams.get("strategy")).toBe("mobile");
+    expect(result.summary.categories.performance).toBe(73);
+    expect(result.raw.id).toBe(payload.id);
+  });
+
+  it("comparePagespeedTool calls PSI twice and returns desktop-minus-mobile delta", async () => {
+    const mobilePayload = makePsiPayload({
+      id: "https://ikinokta360.com/",
+      performanceScore: 0.61
+    });
+    const desktopPayload = makePsiPayload({
+      id: "https://ikinokta360.com/",
+      performanceScore: 0.89
+    });
+
+    global.fetch
+      .mockResolvedValueOnce(mockOkJson(mobilePayload))
+      .mockResolvedValueOnce(mockOkJson(desktopPayload));
+
+    const result = await comparePagespeedTool({
+      url: "https://ikinokta360.com",
+      categories: ["performance", "seo"]
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    const firstCall = new URL(global.fetch.mock.calls[0][0]);
+    const secondCall = new URL(global.fetch.mock.calls[1][0]);
+    expect(firstCall.searchParams.get("strategy")).toBe("mobile");
+    expect(secondCall.searchParams.get("strategy")).toBe("desktop");
+    expect(result.performance_delta_desktop_minus_mobile).toBe(28);
+    expect(result.mobile.categories.performance).toBe(61);
+    expect(result.desktop.categories.performance).toBe(89);
+  });
+});

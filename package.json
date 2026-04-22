@@ -1,0 +1,48 @@
+{
+  "name": "pagespeedinsight-mcp",
+  "version": "0.1.0",
+  "description": "MCP server for Google PageSpeed Insights",
+  "type": "module",
+  "main": "src/server.js",
+  "bin": {
+    "pagespeedinsight-mcp": "bin/pagespeedinsight-mcp.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "docs",
+    "README.md",
+    "README.en.md",
+    "README.tr.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "start": "node bin/pagespeedinsight-mcp.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && npm run test",
+    "security:prod": "npm_config_cache=.npm-cache npm audit --omit=dev --audit-level=high",
+    "security:full": "npm_config_cache=.npm-cache npm audit --audit-level=moderate",
+    "pack:dry-run": "npm_config_cache=.npm-cache npm pack --dry-run",
+    "release:check": "npm run check && npm run security:prod && npm run pack:dry-run"
+  },
+  "keywords": [
+    "mcp",
+    "pagespeed",
+    "pagespeed-insights",
+    "lighthouse",
+    "openclaw"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.4"
+  }
+}
