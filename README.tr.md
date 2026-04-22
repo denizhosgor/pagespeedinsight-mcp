@@ -62,7 +62,7 @@ NPX ile:
 - `compare_pagespeed`
 
 Ajan kullanım kılavuzu:
-- `docs/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
+- `docs/tr/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
 
 ## Geliştirme
 

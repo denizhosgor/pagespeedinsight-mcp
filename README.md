@@ -74,7 +74,7 @@ NPX:
 - `compare_pagespeed`
 
 Agent tool usage guide:
-- `docs/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
+- `docs/en/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
 
 ## Development
 
