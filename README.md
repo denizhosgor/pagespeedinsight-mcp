@@ -1,33 +1,27 @@
 # pagespeedinsight-mcp
 
-Language versions:
-- Turkish: `README.tr.md`
-
-This package exposes Google PageSpeed Insights as MCP tools so agents in OpenClaw and other MCP-compatible systems can:
-1. Fetch page performance reports.
-2. Analyze detected issues.
-3. Feed findings back into an optimization/reprocessing loop.
-
-----
-
-# pagespeedinsight-mcp
-
 Node.js MCP server package that exposes Google PageSpeed Insights as tools.
 
 Agents in OpenClaw and other MCP-compatible systems can use this server to:
-1. Generate full PageSpeed reports for a page.
+1. Generate page performance reports.
 2. Analyze issues and opportunities from the report.
-3. Feed the output back into an optimization loop and re-run checks after changes.
+3. Re-run after fixes and iterate in an optimization loop.
 
-## Install and run
+Turkish documentation: `README.tr.md`
 
-Global install:
+## Install
+
+Global:
 ```bash
 npm install -g pagespeedinsight-mcp
+```
+
+Run directly:
+```bash
 pagespeedinsight-mcp
 ```
 
-Run with npx:
+NPX:
 ```bash
 npx -y pagespeedinsight-mcp
 ```
@@ -39,7 +33,6 @@ export PAGESPEEDINSIGHT_API_KEY=YOUR_API_KEY
 
 ## OpenClaw MCP config
 
-Global package:
 ```json
 {
   "mcpServers": {
@@ -53,69 +46,59 @@ Global package:
 }
 ```
 
-NPX:
-```json
-{
-  "mcpServers": {
-    "pagespeedinsight": {
-      "command": "npx",
-      "args": ["-y", "pagespeedinsight-mcp"],
-      "env": {
-        "PAGESPEEDINSIGHT_API_KEY": "YOUR_KEY_OPTIONAL"
-      }
-    }
-  }
-}
+## Install OpenClaw skill file
+
+This package can create:
+`app/skills/pagespeedinsight-mcp/SKILL.md`
+
+Option A: auto-install during npm install (recommended)
+```bash
+OPENCLAW_DIR=/absolute/path/to/openclaw OPENCLAW_SKILL_OWNER=node:node npm install -g pagespeedinsight-mcp
 ```
+
+Option B: manual install
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
+```
+
+Or provide skills directory directly:
+```bash
+pagespeedinsight-mcp install-skill --skills-dir /absolute/path/to/openclaw/app/skills
+```
+
+Overwrite existing file:
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --force --chown node:node
+```
+
+If your environment requires `node:node` ownership, run install with a user that can execute `chown` (root/sudo).
+
+## Important: skill vs tool discovery
+
+- `SKILL.md` only explains how the agent should use tools.
+- Tool discovery happens through OpenClaw `mcpServers` config.
+- If the agent says tool is unknown, usually the MCP server is not connected/reloaded.
 
 ## Available tools
 
 - `run_pagespeed`
 - `compare_pagespeed`
 
-Agent tool usage guide:
+Agent usage guide:
 - `docs/en/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
 
-## Development
+## Dev and tests
 
 ```bash
 npm install
 npm run check
-npm start
-```
-
-## Tests
-
-```bash
 npm test
-npm run test:watch
 ```
 
 ## Security and release checks
 
-Production dependency audit:
 ```bash
 npm run security:prod
-```
-
-Full dependency audit (including dev deps):
-```bash
 npm run security:full
-```
-
-Single pre-release check:
-```bash
 npm run release:check
 ```
-
-`release:check` runs:
-1. `npm run check` (syntax + tests)
-2. `npm run security:prod` (audit)
-3. `npm run pack:dry-run` (package verification)
-
-## npm publish
-
-1. Ensure `name` in `package.json` is unique.
-2. Bump version: `npm version patch` (or `minor`/`major`).
-3. Login: `npm login`
-4. Publish: `npm publish --access public`

@@ -64,6 +64,39 @@ NPX ile:
 Ajan kullanım kılavuzu:
 - `docs/tr/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
 
+## OpenClaw skill dosyasını kurma
+
+Bu paket su dosyayi olusturabilir:
+`app/skills/pagespeedinsight-mcp/SKILL.md`
+
+Secenek A: npm kurulumunda otomatik (onerilen)
+```bash
+OPENCLAW_DIR=/openclaw/tam/yol OPENCLAW_SKILL_OWNER=node:node npm install -g pagespeedinsight-mcp
+```
+
+Secenek B: manuel
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /openclaw/tam/yol --chown node:node
+```
+
+Dogrudan skills klasoru vererek:
+```bash
+pagespeedinsight-mcp install-skill --skills-dir /openclaw/tam/yol/app/skills
+```
+
+Var olani ezmek icin:
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /openclaw/tam/yol --force --chown node:node
+```
+
+Ortaminda `node:node` sahipligi zorunluysa, kurulumu `chown` yetkisi olan kullanici ile calistirmalisin (root/sudo).
+
+## Onemli: skill ve tool farki
+
+- `SKILL.md` sadece ajana kullanim kurali verir.
+- Tool taninmasi OpenClaw `mcpServers` konfigrasyonu ile olur.
+- Ajan tool'u gormuyorsa MCP server baglantisi/reload tarafi eksiktir.
+
 ## Geliştirme
 
 ```bash

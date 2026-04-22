@@ -10,16 +10,20 @@
   "files": [
     "bin",
     "src",
+    "scripts",
+    "skills",
     "docs",
     "README.md",
     "README.tr.md",
     "LICENSE"
   ],
   "scripts": {
+    "postinstall": "node scripts/install-skill.js --auto",
     "start": "node bin/pagespeedinsight-mcp.js",
+    "install-skill": "node scripts/install-skill.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && npm run test",
+    "check": "node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && node --check scripts/install-skill.js && npm run test",
     "security:prod": "npm_config_cache=.npm-cache npm audit --omit=dev --audit-level=high",
     "security:full": "npm_config_cache=.npm-cache npm audit --audit-level=moderate",
     "pack:dry-run": "npm_config_cache=.npm-cache npm pack --dry-run",
@@ -32,7 +36,7 @@
     "lighthouse",
     "openclaw"
   ],
-  "author": "Deniz Hoşgör",
+  "author": "",
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
@@ -43,17 +47,5 @@
   },
   "devDependencies": {
     "vitest": "^4.0.4"
-  },
-  "directories": {
-    "doc": "docs",
-    "test": "tests"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/denizhosgor/pagespeedinsight-mcp.git"
-  },
-  "bugs": {
-    "url": "https://github.com/denizhosgor/pagespeedinsight-mcp/issues"
-  },
-  "homepage": "https://github.com/denizhosgor/pagespeedinsight-mcp#readme"
+  }
 }
