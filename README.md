@@ -50,6 +50,7 @@ export PAGESPEEDINSIGHT_API_KEY=YOUR_API_KEY
 
 This package can create:
 `app/skills/pagespeedinsight-mcp/SKILL.md`
+and copies the content from `PAGESPEEDINSIGHT_TOOL_GUIDE.md` into `SKILL.md`.
 
 Option A: auto-install during npm install (recommended)
 ```bash

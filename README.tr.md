@@ -68,6 +68,7 @@ Ajan kullanım kılavuzu:
 
 Bu paket su dosyayi olusturabilir:
 `app/skills/pagespeedinsight-mcp/SKILL.md`
+Ve `SKILL.md` icerigini `PAGESPEEDINSIGHT_TOOL_GUIDE.md` dosyasindan kopyalar.
 
 Secenek A: npm kurulumunda otomatik (onerilen)
 ```bash

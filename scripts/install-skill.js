@@ -57,7 +57,11 @@ export function resolveSkillsDir(args) {
   if (process.env.OPENCLAW_DIR) {
     return path.resolve(process.env.OPENCLAW_DIR, "app", "skills");
   }
-  return path.resolve(process.cwd(), "app", "skills");
+  const cwd = path.resolve(process.cwd());
+  if (cwd === "/app" || path.basename(cwd) === "app") {
+    return path.resolve(cwd, "skills");
+  }
+  return path.resolve(cwd, "app", "skills");
 }
 
 export function resolveOwner(args) {
@@ -93,16 +97,23 @@ export function runInstallSkill(argv = process.argv.slice(2)) {
     Boolean(args.openclawDir) ||
     Boolean(process.env.OPENCLAW_SKILLS_DIR) ||
     Boolean(process.env.OPENCLAW_DIR);
+  const cwd = path.resolve(process.cwd());
+  const isLikelyOpenClawRoot = cwd === "/app" || path.basename(cwd) === "app";
 
-  if (args.auto && !hasTargetInArgsOrEnv) {
+  if (args.auto && !hasTargetInArgsOrEnv && !isLikelyOpenClawRoot) {
     process.stdout.write(
-      "[pagespeedinsight-mcp] postinstall skipped. Set OPENCLAW_DIR or OPENCLAW_SKILLS_DIR for auto skill install.\n"
+      "[pagespeedinsight-mcp] postinstall skipped. Set OPENCLAW_DIR or OPENCLAW_SKILLS_DIR, or run install inside /app.\n"
     );
     return;
   }
 
   const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const sourceSkill = path.join(packageRoot, "skills", "SKILL.md");
+  const sourceSkillCandidates = [
+    path.join(packageRoot, "docs", "tr", "PAGESPEEDINSIGHT_TOOL_GUIDE.md"),
+    path.join(packageRoot, "docs", "en", "PAGESPEEDINSIGHT_TOOL_GUIDE.md"),
+    path.join(packageRoot, "skills", "SKILL.md")
+  ];
+  const sourceSkill = sourceSkillCandidates.find((candidate) => fs.existsSync(candidate)) || "";
   const targetDir = path.join(skillsDir, "pagespeedinsight-mcp");
   const targetSkill = path.join(targetDir, "SKILL.md");
 
