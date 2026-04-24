@@ -1,6 +1,6 @@
 {
   "name": "@denizhosgor/pagespeedinsight-mcp",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/@denizhosgor%2fpagespeedinsight-mcp/"
