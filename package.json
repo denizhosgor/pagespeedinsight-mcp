@@ -3,7 +3,7 @@
   "version": "0.1.11",
   "publishConfig": {
     "access": "public",
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://registry.npmjs.org/@denizhosgor%2fpagespeedinsight-mcp/"
   },
   "description": "MCP server for Google PageSpeed Insights",
   "type": "module",
