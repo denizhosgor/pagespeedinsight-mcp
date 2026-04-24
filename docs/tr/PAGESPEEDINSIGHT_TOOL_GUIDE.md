@@ -14,12 +14,19 @@ Tek bir strateji (mobile/desktop) için analiz çalıştırır.
 - `locale` (opsiyonel, string): Örn: `tr-TR`, `en-US` (varsayılan: `en-US`)
 - `timeout_seconds` (opsiyonel, int): 5-180 arası (varsayılan: 60)
 - `include_raw` (opsiyonel, bool): `true` olursa ham PSI cevabı da döner
+- `utm_campaign` (opsiyonel, string): PSI API'ye kampanya adi gonderir.
+- `utm_source` (opsiyonel, string): PSI API'ye kampanya kaynagi gonderir.
+- `captcha_token` (opsiyonel, string): PSI API'ye `captchaToken` olarak gonderilir.
 
 **Output**
+- `request_context`: Server tarafinda kullanilan normalize edilmis input.
 - `summary`:
   - `categories` skorları (0-100)
   - `key_metrics` (FCP/LCP/CLS/TBT/INP vb.)
   - `top_opportunities` (en yüksek tahmini kazanım)
+  - `api_metadata` (`kind`, `analysis_utc_timestamp`, `version` vb.)
+  - `lighthouse_context` (`requested_url`, `final_url`, `run_warnings`, `runtime_error`, config bilgileri)
+  - `loading_experience.metrics` ve `origin_loading_experience.metrics` (CrUX field data)
 - `saved_report_path`: Kaydedilen ham JSON rapor dosyasının tam yolu (`report/<url>-<timestamp>.json`)
 
 ### 2) `compare_pagespeed`
@@ -30,8 +37,12 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
 - `categories` (opsiyonel, string[])
 - `locale` (opsiyonel, string)
 - `timeout_seconds` (opsiyonel, int)
+- `utm_campaign` (opsiyonel, string)
+- `utm_source` (opsiyonel, string)
+- `captcha_token` (opsiyonel, string)
 
 **Output**
+- `request_context`
 - `mobile` özeti
 - `desktop` özeti
 - `performance_delta_desktop_minus_mobile`
@@ -42,10 +53,14 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
 1. Her cagrida diske JSON rapor dosyasi yazilir.
 2. Varsayilan olarak dosyalar calisma dizinindeki `report/` altina yazilir.
 3. Dizin `PAGESPEEDINSIGHT_REPORT_DIR` ile degistirilebilir.
-4. `compare_pagespeed` kayit dosyasinda iki ham payload birlikte tutulur:
-   - `mobile`
-   - `desktop`
-   - ek olarak `url` ve `saved_at`
+4. `run_pagespeed` kayit dosyasi su alanlari icerir:
+   - `request_context`
+   - `response_summary`
+   - `raw_response`
+5. `compare_pagespeed` kayit dosyasi su alanlari icerir:
+   - `request_context`
+   - `comparison_summary`
+   - `raw_response.mobile` ve `raw_response.desktop`
 
 ## Ajan kullanım kuralları
 
@@ -90,6 +105,8 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
 - `summary.categories.performance`
 - `summary.key_metrics.lcp_ms`
 - `summary.top_opportunities`
+- `summary.lighthouse_context.runtime_error`
+- `summary.loading_experience.metrics`
 - `saved_report_path`
 
 ## Ajan cevap formatı önerisi

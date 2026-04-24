@@ -14,12 +14,19 @@ Runs an analysis for a single strategy (mobile/desktop).
 - `locale` (optional, string): e.g., `tr-TR`, `en-US` (default: `en-US`)
 - `timeout_seconds` (optional, int): Between 5-180 (default: 60)
 - `include_raw` (optional, bool): If `true`, the raw PSI response is also returned.
+- `utm_campaign` (optional, string): Campaign name sent to PSI API.
+- `utm_source` (optional, string): Campaign source sent to PSI API.
+- `captcha_token` (optional, string): Sent as `captchaToken` to PSI API.
 
 **Output**
+- `request_context`: Normalized input actually used by the server.
 - `summary`:
   - `categories` scores (0-100)
   - `key_metrics` (FCP/LCP/CLS/TBT/INP etc.)
   - `top_opportunities` (highest estimated savings)
+  - `api_metadata` (`kind`, `analysis_utc_timestamp`, `version`, etc.)
+  - `lighthouse_context` (`requested_url`, `final_url`, `run_warnings`, `runtime_error`, config info)
+  - `loading_experience.metrics` and `origin_loading_experience.metrics` (CrUX field data)
 - `saved_report_path`: Full path of the saved raw JSON report file (`report/<url>-<timestamp>.json`)
 
 ### 2) `compare_pagespeed`
@@ -30,8 +37,12 @@ Compares mobile + desktop results for the same URL.
 - `categories` (optional, string[])
 - `locale` (optional, string)
 - `timeout_seconds` (optional, int)
+- `utm_campaign` (optional, string)
+- `utm_source` (optional, string)
+- `captcha_token` (optional, string)
 
 **Output**
+- `request_context`
 - `mobile` summary
 - `desktop` summary
 - `performance_delta_desktop_minus_mobile`
@@ -42,10 +53,14 @@ Compares mobile + desktop results for the same URL.
 1. Every call writes a JSON report file to disk.
 2. By default files are written under `report/` in current working directory.
 3. You can override directory via `PAGESPEEDINSIGHT_REPORT_DIR`.
-4. For `compare_pagespeed`, saved file includes both raw payloads:
-   - `mobile`
-   - `desktop`
-   - plus `url` and `saved_at`
+4. For `run_pagespeed`, saved file contains:
+   - `request_context`
+   - `response_summary`
+   - `raw_response`
+5. For `compare_pagespeed`, saved file contains:
+   - `request_context`
+   - `comparison_summary`
+   - `raw_response.mobile` and `raw_response.desktop`
 
 ## Agent Usage Rules
 
@@ -90,6 +105,8 @@ Compares mobile + desktop results for the same URL.
 - `summary.categories.performance`
 - `summary.key_metrics.lcp_ms`
 - `summary.top_opportunities`
+- `summary.lighthouse_context.runtime_error`
+- `summary.loading_experience.metrics`
 - `saved_report_path`
 
 ## Suggested Agent Response Format

@@ -40,17 +40,26 @@ describe("tool handlers", () => {
       url: "ikinokta360.com",
       strategy: "mobile",
       locale: "tr-TR",
-      include_raw: true
+      include_raw: true,
+      utm_campaign: "agent-check",
+      utm_source: "openclaw"
     });
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const requestUrl = new URL(global.fetch.mock.calls[0][0]);
     expect(requestUrl.searchParams.get("url")).toBe("https://ikinokta360.com");
     expect(requestUrl.searchParams.get("strategy")).toBe("mobile");
+    expect(requestUrl.searchParams.get("utm_campaign")).toBe("agent-check");
+    expect(requestUrl.searchParams.get("utm_source")).toBe("openclaw");
+    expect(result.request_context.url).toBe("https://ikinokta360.com");
     expect(result.summary.categories.performance).toBe(73);
     expect(result.raw.id).toBe(payload.id);
     expect(result.saved_report_path.startsWith(reportDir)).toBe(true);
     expect(fs.existsSync(result.saved_report_path)).toBe(true);
+    const savedJson = JSON.parse(fs.readFileSync(result.saved_report_path, "utf8"));
+    expect(savedJson.report_type).toBe("run_pagespeed");
+    expect(savedJson.response_summary.categories.performance).toBe(73);
+    expect(savedJson.raw_response.id).toBe(payload.id);
   });
 
   it("comparePagespeedTool calls PSI twice and returns desktop-minus-mobile delta", async () => {
@@ -83,7 +92,9 @@ describe("tool handlers", () => {
     expect(result.saved_report_path.startsWith(reportDir)).toBe(true);
     expect(fs.existsSync(result.saved_report_path)).toBe(true);
     const savedJson = JSON.parse(fs.readFileSync(result.saved_report_path, "utf8"));
-    expect(savedJson.mobile.id).toBe("https://ikinokta360.com/");
-    expect(savedJson.desktop.id).toBe("https://ikinokta360.com/");
+    expect(savedJson.report_type).toBe("compare_pagespeed");
+    expect(savedJson.raw_response.mobile.id).toBe("https://ikinokta360.com/");
+    expect(savedJson.raw_response.desktop.id).toBe("https://ikinokta360.com/");
+    expect(savedJson.comparison_summary.performance_delta_desktop_minus_mobile).toBe(28);
   });
 });

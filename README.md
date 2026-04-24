@@ -98,23 +98,30 @@ If your environment requires `node:node` ownership, run install with a user that
 - Default directory: `<current-working-directory>/report`
 - File name format: `<sanitized-url>-<timestamp>.json`
 - Timestamp format: ISO-like UTC string with safe filename characters.
+- Optional tracking/query fields supported by both tools:
+  - `utm_campaign`
+  - `utm_source`
+  - `captcha_token` (sent as `captchaToken` to PSI API)
 
 `run_pagespeed` response includes:
+- `request_context`
 - `summary`: normalized scores and key metrics
+- `summary.api_metadata` (`kind`, `analysis_utc_timestamp`, `pagespeed_version`, etc.)
+- `summary.lighthouse_context` (`requested_url`, `final_url`, `run_warnings`, `runtime_error`, `config_settings`)
+- `summary.loading_experience.metrics` / `summary.origin_loading_experience.metrics`
 - `saved_report_path`: raw PSI JSON file path
 - `raw`: only when `include_raw=true`
 
 `compare_pagespeed` response includes:
+- `request_context`
 - `mobile`: mobile summary
 - `desktop`: desktop summary
 - `performance_delta_desktop_minus_mobile`
 - `saved_report_path`: combined raw JSON path
 
-The saved combined file from `compare_pagespeed` contains:
-- `url`
-- `saved_at`
-- `mobile` (raw PSI payload)
-- `desktop` (raw PSI payload)
+Saved report file structure:
+- `run_pagespeed`: `request_context`, `response_summary`, `raw_response`
+- `compare_pagespeed`: `request_context`, `comparison_summary`, `raw_response.mobile`, `raw_response.desktop`
 
 Agent usage guide:
 - `docs/en/PAGESPEEDINSIGHT_TOOL_GUIDE.md`

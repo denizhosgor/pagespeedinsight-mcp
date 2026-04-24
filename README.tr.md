@@ -74,23 +74,30 @@ NPX ile:
 - Varsayilan klasor: `<calisma-dizini>/report`
 - Dosya adi formati: `<normalize-url>-<timestamp>.json`
 - Timestamp formati: dosya adina uygun UTC ISO benzeri format.
+- Her iki tool icin desteklenen opsiyonel query alanlari:
+  - `utm_campaign`
+  - `utm_source`
+  - `captcha_token` (PSI API'ye `captchaToken` olarak gider)
 
 `run_pagespeed` sonucu:
+- `request_context`
 - `summary`: normalize edilmis skorlar ve metrikler
+- `summary.api_metadata` (`kind`, `analysis_utc_timestamp`, `pagespeed_version` vb.)
+- `summary.lighthouse_context` (`requested_url`, `final_url`, `run_warnings`, `runtime_error`, `config_settings`)
+- `summary.loading_experience.metrics` / `summary.origin_loading_experience.metrics`
 - `saved_report_path`: ham PSI JSON dosya yolu
 - `raw`: sadece `include_raw=true` oldugunda
 
 `compare_pagespeed` sonucu:
+- `request_context`
 - `mobile`: mobile ozet
 - `desktop`: desktop ozet
 - `performance_delta_desktop_minus_mobile`
 - `saved_report_path`: birlesik ham JSON dosya yolu
 
-`compare_pagespeed` ile kaydedilen birlesik dosya icerigi:
-- `url`
-- `saved_at`
-- `mobile` (ham PSI payload)
-- `desktop` (ham PSI payload)
+Kaydedilen rapor dosyasi yapisi:
+- `run_pagespeed`: `request_context`, `response_summary`, `raw_response`
+- `compare_pagespeed`: `request_context`, `comparison_summary`, `raw_response.mobile`, `raw_response.desktop`
 
 Ajan kullanım kılavuzu:
 - `docs/tr/PAGESPEEDINSIGHT_TOOL_GUIDE.md`

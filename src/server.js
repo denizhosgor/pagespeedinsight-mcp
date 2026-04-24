@@ -78,12 +78,123 @@ function getNum(input) {
   return typeof input === "number" ? input : null;
 }
 
+function extractCruxMetrics(metrics) {
+  const output = {};
+  const source = metrics && typeof metrics === "object" ? metrics : {};
+  for (const [metricName, metricData] of Object.entries(source)) {
+    output[metricName] = {
+      percentile: getNum(metricData?.percentile),
+      category: metricData?.category || null,
+      distributions: Array.isArray(metricData?.distributions) ? metricData.distributions : []
+    };
+  }
+  return output;
+}
+
+function extractLoadingExperienceSummary(experience) {
+  const source = experience && typeof experience === "object" ? experience : {};
+  return {
+    id: source.id || null,
+    overall_category: source.overall_category || null,
+    initial_url: source.initial_url || null,
+    origin_fallback: typeof source.origin_fallback === "boolean" ? source.origin_fallback : null,
+    metrics: extractCruxMetrics(source.metrics)
+  };
+}
+
+function extractLighthouseContext(lighthouse) {
+  const source = lighthouse && typeof lighthouse === "object" ? lighthouse : {};
+  const configSettings = source.configSettings || {};
+  const runtimeError = source.runtimeError || null;
+  return {
+    fetch_time: source.fetchTime || null,
+    requested_url: source.requestedUrl || null,
+    final_url: source.finalUrl || null,
+    lighthouse_version: source.lighthouseVersion || null,
+    user_agent: source.userAgent || null,
+    run_warnings: Array.isArray(source.runWarnings) ? source.runWarnings : [],
+    runtime_error: runtimeError
+      ? {
+          code: runtimeError.code || null,
+          message: runtimeError.message || null
+        }
+      : null,
+    timing: {
+      total_ms: getNum(source?.timing?.total)
+    },
+    config_settings: {
+      locale: configSettings.locale || null,
+      form_factor: configSettings.formFactor || null,
+      channel: configSettings.channel || null
+    }
+  };
+}
+
+function extractCategoryDetails(categoryScores) {
+  const source = categoryScores && typeof categoryScores === "object" ? categoryScores : {};
+  const out = {};
+  for (const [categoryKey, categoryValue] of Object.entries(source)) {
+    out[categoryKey] = {
+      id: categoryValue?.id || null,
+      title: categoryValue?.title || null,
+      score: scorePercent(categoryValue?.score)
+    };
+  }
+  return out;
+}
+
+function extractApiMetadata(report) {
+  const source = report && typeof report === "object" ? report : {};
+  const version = source.version || {};
+  return {
+    kind: source.kind || null,
+    captcha_result: source.captchaResult || null,
+    page_id: source.id || null,
+    analysis_utc_timestamp: source.analysisUTCTimestamp || null,
+    pagespeed_version: {
+      major: version.major || null,
+      minor: version.minor || null
+    }
+  };
+}
+
+function buildRunReportFilePayload({ requestContext, summary, rawReport }) {
+  return {
+    schema_version: "1.0",
+    report_type: "run_pagespeed",
+    generated_at: new Date().toISOString(),
+    request_context: requestContext,
+    response_summary: summary,
+    raw_response: rawReport
+  };
+}
+
+function buildCompareReportFilePayload({ requestContext, mobileSummary, desktopSummary, rawMobile, rawDesktop, delta }) {
+  return {
+    schema_version: "1.0",
+    report_type: "compare_pagespeed",
+    generated_at: new Date().toISOString(),
+    request_context: requestContext,
+    comparison_summary: {
+      performance_delta_desktop_minus_mobile: delta,
+      mobile: mobileSummary,
+      desktop: desktopSummary
+    },
+    raw_response: {
+      mobile: rawMobile,
+      desktop: rawDesktop
+    }
+  };
+}
+
 export function summarizeReport(report, strategy, categories) {
   const lighthouse = report?.lighthouseResult || {};
   const audits = lighthouse?.audits || {};
   const categoryScores = lighthouse?.categories || {};
-  const loadingExperience = report?.loadingExperience || {};
-  const originLoadingExperience = report?.originLoadingExperience || {};
+  const loadingExperience = extractLoadingExperienceSummary(report?.loadingExperience || {});
+  const originLoadingExperience = extractLoadingExperienceSummary(report?.originLoadingExperience || {});
+  const apiMetadata = extractApiMetadata(report);
+  const lighthouseContext = extractLighthouseContext(lighthouse);
 
   const categoriesOut = {};
   for (const c of categories) {
@@ -133,23 +244,20 @@ export function summarizeReport(report, strategy, categories) {
   return {
     requested_strategy: strategy,
     final_url: report?.id || null,
-    analysis_timestamp: lighthouse?.fetchTime || null,
+    analysis_timestamp: report?.analysisUTCTimestamp || lighthouse?.fetchTime || null,
     lighthouse_version: lighthouse?.lighthouseVersion || null,
+    api_metadata: apiMetadata,
+    lighthouse_context: lighthouseContext,
     categories: categoriesOut,
+    category_details: extractCategoryDetails(categoryScores),
     key_metrics: keyMetrics,
-    loading_experience: {
-      overall_category: loadingExperience?.overall_category || null,
-      initial_url: loadingExperience?.initial_url || null
-    },
-    origin_loading_experience: {
-      overall_category: originLoadingExperience?.overall_category || null,
-      origin_fallback: originLoadingExperience?.origin_fallback || null
-    },
+    loading_experience: loadingExperience,
+    origin_loading_experience: originLoadingExperience,
     top_opportunities: opportunities.slice(0, 5)
   };
 }
 
-export async function fetchPsi(targetUrl, strategy, categories, locale, timeoutSeconds) {
+export async function fetchPsi(targetUrl, strategy, categories, locale, timeoutSeconds, requestMeta = {}) {
   const normalizedUrl = normalizeUrl(targetUrl);
   const normalizedStrategy = String(strategy || "mobile").trim().toLowerCase();
   if (!["mobile", "desktop"].includes(normalizedStrategy)) {
@@ -169,6 +277,15 @@ export async function fetchPsi(targetUrl, strategy, categories, locale, timeoutS
 
   if (locale) {
     searchParams.set("locale", String(locale));
+  }
+  if (requestMeta?.utm_campaign) {
+    searchParams.set("utm_campaign", String(requestMeta.utm_campaign));
+  }
+  if (requestMeta?.utm_source) {
+    searchParams.set("utm_source", String(requestMeta.utm_source));
+  }
+  if (requestMeta?.captcha_token) {
+    searchParams.set("captchaToken", String(requestMeta.captcha_token));
   }
 
   const apiKey = String(process.env.PAGESPEEDINSIGHT_API_KEY || "").trim();
@@ -215,30 +332,79 @@ export async function runPagespeedTool({
   categories,
   locale = "en-US",
   timeout_seconds: timeoutSeconds = DEFAULT_TIMEOUT_SECONDS,
-  include_raw: includeRaw = false
+  include_raw: includeRaw = false,
+  utm_campaign,
+  utm_source,
+  captcha_token
 }) {
   const normalizedUrl = normalizeUrl(url);
   const normalizedStrategy = String(strategy || "mobile").trim().toLowerCase();
   const normalizedCategories = normalizeCategories(categories);
-  const report = await fetchPsi(normalizedUrl, normalizedStrategy, normalizedCategories, locale, timeoutSeconds);
+  const requestContext = {
+    url: normalizedUrl,
+    strategy: normalizedStrategy,
+    categories: normalizedCategories,
+    locale: locale || null,
+    timeout_seconds: clampTimeout(timeoutSeconds),
+    include_raw: Boolean(includeRaw),
+    utm_campaign: utm_campaign || null,
+    utm_source: utm_source || null,
+    captcha_token_provided: Boolean(captcha_token)
+  };
+
+  const report = await fetchPsi(
+    normalizedUrl,
+    normalizedStrategy,
+    normalizedCategories,
+    locale,
+    timeoutSeconds,
+    { utm_campaign, utm_source, captcha_token }
+  );
   const summary = summarizeReport(report, normalizedStrategy, normalizedCategories);
-  const savedReportPath = saveReportToFile(normalizedUrl, report);
+  const savedReportPath = saveReportToFile(
+    normalizedUrl,
+    buildRunReportFilePayload({
+      requestContext,
+      summary,
+      rawReport: report
+    })
+  );
   if (includeRaw) {
-    return { summary, raw: report, saved_report_path: savedReportPath };
+    return { request_context: requestContext, summary, raw: report, saved_report_path: savedReportPath };
   }
-  return { summary, saved_report_path: savedReportPath };
+  return { request_context: requestContext, summary, saved_report_path: savedReportPath };
 }
 
 export async function comparePagespeedTool({
   url,
   categories,
   locale = "en-US",
-  timeout_seconds: timeoutSeconds = DEFAULT_TIMEOUT_SECONDS
+  timeout_seconds: timeoutSeconds = DEFAULT_TIMEOUT_SECONDS,
+  utm_campaign,
+  utm_source,
+  captcha_token
 }) {
   const normalizedUrl = normalizeUrl(url);
   const normalizedCategories = normalizeCategories(categories);
-  const mobile = await fetchPsi(normalizedUrl, "mobile", normalizedCategories, locale, timeoutSeconds);
-  const desktop = await fetchPsi(normalizedUrl, "desktop", normalizedCategories, locale, timeoutSeconds);
+  const requestContext = {
+    url: normalizedUrl,
+    categories: normalizedCategories,
+    locale: locale || null,
+    timeout_seconds: clampTimeout(timeoutSeconds),
+    utm_campaign: utm_campaign || null,
+    utm_source: utm_source || null,
+    captcha_token_provided: Boolean(captcha_token)
+  };
+  const mobile = await fetchPsi(normalizedUrl, "mobile", normalizedCategories, locale, timeoutSeconds, {
+    utm_campaign,
+    utm_source,
+    captcha_token
+  });
+  const desktop = await fetchPsi(normalizedUrl, "desktop", normalizedCategories, locale, timeoutSeconds, {
+    utm_campaign,
+    utm_source,
+    captcha_token
+  });
 
   const mobileSummary = summarizeReport(mobile, "mobile", normalizedCategories);
   const desktopSummary = summarizeReport(desktop, "desktop", normalizedCategories);
@@ -250,15 +416,21 @@ export async function comparePagespeedTool({
       ? Number((perfDesktop - perfMobile).toFixed(2))
       : null;
 
-  const savedReportPath = saveReportToFile(normalizedUrl, {
-    url: normalizedUrl,
-    saved_at: new Date().toISOString(),
-    mobile,
-    desktop
-  });
+  const savedReportPath = saveReportToFile(
+    normalizedUrl,
+    buildCompareReportFilePayload({
+      requestContext,
+      mobileSummary,
+      desktopSummary,
+      rawMobile: mobile,
+      rawDesktop: desktop,
+      delta: perfDelta
+    })
+  );
 
   return {
     url: normalizedUrl,
+    request_context: requestContext,
     performance_delta_desktop_minus_mobile: perfDelta,
     mobile: mobileSummary,
     desktop: desktopSummary,
@@ -269,7 +441,7 @@ export async function comparePagespeedTool({
 export function createServer() {
   const server = new McpServer({
     name: "pagespeedinsight",
-    version: "0.1.0"
+    version: "0.1.9"
   });
 
   server.tool(
@@ -281,7 +453,10 @@ export function createServer() {
       categories: z.array(z.string()).optional(),
       locale: z.string().default("en-US"),
       timeout_seconds: z.number().int().min(5).max(180).default(DEFAULT_TIMEOUT_SECONDS),
-      include_raw: z.boolean().default(false)
+      include_raw: z.boolean().default(false),
+      utm_campaign: z.string().optional(),
+      utm_source: z.string().optional(),
+      captcha_token: z.string().optional()
     },
     async (args) => asToolResponse(await runPagespeedTool(args))
   );
@@ -293,7 +468,10 @@ export function createServer() {
       url: z.string().min(1),
       categories: z.array(z.string()).optional(),
       locale: z.string().default("en-US"),
-      timeout_seconds: z.number().int().min(5).max(180).default(DEFAULT_TIMEOUT_SECONDS)
+      timeout_seconds: z.number().int().min(5).max(180).default(DEFAULT_TIMEOUT_SECONDS),
+      utm_campaign: z.string().optional(),
+      utm_source: z.string().optional(),
+      captcha_token: z.string().optional()
     },
     async (args) => asToolResponse(await comparePagespeedTool(args))
   );
