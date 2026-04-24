@@ -7,6 +7,11 @@ OpenClaw ve MCP uyumlu diğer projelerdeki ajanlar bu sunucu ile:
 2. Rapordaki hata ve iyileştirme fırsatlarını analiz edebilir.
 3. Sonuçlara göre optimizasyon yapıp tekrar ölçüm döngüsüne alabilir.
 
+## Node.js uyumlulugu
+
+- Desteklenen surumler: Node.js `20`, `22`, `24`
+- Lokal gelistirme varsayilan hedefi: en guncel Node.js `24` (`.nvmrc` = `24`)
+
 ## Kurulum ve çalıştırma
 
 Global kurulum:

@@ -35,3 +35,13 @@ Use this skill when you need to analyze a web page with Google PageSpeed Insight
 
 - This skill does not register tools by itself.
 - MCP server must be configured in OpenClaw `mcpServers` so the agent can discover tools.
+
+## Suggested Agent Response Format
+
+- `Performance`: `<score>/100`
+- `CWV`: `LCP <x>ms, CLS <y>, INP <z>ms`
+- `Top Opportunities`:
+  1. `<title> (<estimated_savings_ms>ms)`
+  2. `<title> (...)`
+  3. `<title> (...)`
+- `Recommendation`: Write the first 2 actions in a brief and actionable manner.

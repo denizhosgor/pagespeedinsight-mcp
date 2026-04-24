@@ -9,6 +9,11 @@ Agents in OpenClaw and other MCP-compatible systems can use this server to:
 
 Turkish documentation: `README.tr.md`
 
+## Node.js compatibility
+
+- Supported runtime versions: Node.js `20`, `22`, `24`
+- Default local development target: latest Node.js `24` (`.nvmrc` = `24`)
+
 ## Install
 
 Global:
