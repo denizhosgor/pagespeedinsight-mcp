@@ -17,6 +17,13 @@ Use this skill when you need to analyze a web page with Google PageSpeed Insight
    - Top 3 opportunities by estimated savings
 4. Provide 2-3 actionable fixes and re-run analysis after changes.
 
+## Reporting output
+
+- Each call returns `saved_report_path`.
+- Report files are saved as `report/<url>-<timestamp>.json`.
+- `compare_pagespeed` saves a combined file with raw `mobile` and `desktop` payloads.
+- Report directory can be overridden with `PAGESPEEDINSIGHT_REPORT_DIR`.
+
 ## Example tool call
 
 ```json

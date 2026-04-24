@@ -1,4 +1,4 @@
-# pagespeedinsight-mcp
+# @denizhosgor/pagespeedinsight-mcp
 
 Node.js MCP server package that exposes Google PageSpeed Insights as tools.
 
@@ -18,7 +18,7 @@ Turkish documentation: `README.tr.md`
 
 Global:
 ```bash
-npm install -g pagespeedinsight-mcp
+npm install -g @denizhosgor/pagespeedinsight-mcp
 ```
 
 Run directly:
@@ -28,7 +28,7 @@ pagespeedinsight-mcp
 
 NPX:
 ```bash
-npx -y pagespeedinsight-mcp
+npx -y @denizhosgor/pagespeedinsight-mcp
 ```
 
 Optional API key:
@@ -59,7 +59,7 @@ and copies the content from `PAGESPEEDINSIGHT_TOOL_GUIDE.md` into `SKILL.md`.
 
 Option A: auto-install during npm install (recommended)
 ```bash
-OPENCLAW_DIR=/absolute/path/to/openclaw OPENCLAW_SKILL_OWNER=node:node npm install -g pagespeedinsight-mcp
+OPENCLAW_DIR=/absolute/path/to/openclaw OPENCLAW_SKILL_OWNER=node:node npm install -g @denizhosgor/pagespeedinsight-mcp
 ```
 
 Option B: manual install
@@ -89,6 +89,32 @@ If your environment requires `node:node` ownership, run install with a user that
 
 - `run_pagespeed`
 - `compare_pagespeed`
+- Raw report JSON is automatically saved under `report/<url>-<timestamp>.json`
+- You can override output directory with `PAGESPEEDINSIGHT_REPORT_DIR=/custom/path`
+
+## Reporting and results
+
+- Every tool call writes a report file to disk and returns `saved_report_path`.
+- Default directory: `<current-working-directory>/report`
+- File name format: `<sanitized-url>-<timestamp>.json`
+- Timestamp format: ISO-like UTC string with safe filename characters.
+
+`run_pagespeed` response includes:
+- `summary`: normalized scores and key metrics
+- `saved_report_path`: raw PSI JSON file path
+- `raw`: only when `include_raw=true`
+
+`compare_pagespeed` response includes:
+- `mobile`: mobile summary
+- `desktop`: desktop summary
+- `performance_delta_desktop_minus_mobile`
+- `saved_report_path`: combined raw JSON path
+
+The saved combined file from `compare_pagespeed` contains:
+- `url`
+- `saved_at`
+- `mobile` (raw PSI payload)
+- `desktop` (raw PSI payload)
 
 Agent usage guide:
 - `docs/en/PAGESPEEDINSIGHT_TOOL_GUIDE.md`

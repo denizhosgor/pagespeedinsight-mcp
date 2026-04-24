@@ -1,4 +1,4 @@
-# pagespeedinsight-mcp
+# @denizhosgor/pagespeedinsight-mcp
 
 Google PageSpeed Insights'i MCP tool olarak sunan Node.js sunucu paketi.
 
@@ -16,13 +16,13 @@ OpenClaw ve MCP uyumlu diğer projelerdeki ajanlar bu sunucu ile:
 
 Global kurulum:
 ```bash
-npm install -g pagespeedinsight-mcp
+npm install -g @denizhosgor/pagespeedinsight-mcp
 pagespeedinsight-mcp
 ```
 
 NPX ile çalıştırma:
 ```bash
-npx -y pagespeedinsight-mcp
+npx -y @denizhosgor/pagespeedinsight-mcp
 ```
 
 Opsiyonel API anahtarı:
@@ -52,7 +52,7 @@ NPX ile:
   "mcpServers": {
     "pagespeedinsight": {
       "command": "npx",
-      "args": ["-y", "pagespeedinsight-mcp"],
+      "args": ["-y", "@denizhosgor/pagespeedinsight-mcp"],
       "env": {
         "PAGESPEEDINSIGHT_API_KEY": "YOUR_KEY_OPTIONAL"
       }
@@ -65,6 +65,32 @@ NPX ile:
 
 - `run_pagespeed`
 - `compare_pagespeed`
+- Ham rapor JSON dosyasi otomatik olarak `report/<url>-<timestamp>.json` altina kaydedilir
+- Kayit dizinini degistirmek icin: `PAGESPEEDINSIGHT_REPORT_DIR=/ozel/yol`
+
+## Raporlama ve sonuc yapisi
+
+- Her tool cagrisi diskte rapor dosyasi uretir ve `saved_report_path` dondurur.
+- Varsayilan klasor: `<calisma-dizini>/report`
+- Dosya adi formati: `<normalize-url>-<timestamp>.json`
+- Timestamp formati: dosya adina uygun UTC ISO benzeri format.
+
+`run_pagespeed` sonucu:
+- `summary`: normalize edilmis skorlar ve metrikler
+- `saved_report_path`: ham PSI JSON dosya yolu
+- `raw`: sadece `include_raw=true` oldugunda
+
+`compare_pagespeed` sonucu:
+- `mobile`: mobile ozet
+- `desktop`: desktop ozet
+- `performance_delta_desktop_minus_mobile`
+- `saved_report_path`: birlesik ham JSON dosya yolu
+
+`compare_pagespeed` ile kaydedilen birlesik dosya icerigi:
+- `url`
+- `saved_at`
+- `mobile` (ham PSI payload)
+- `desktop` (ham PSI payload)
 
 Ajan kullanım kılavuzu:
 - `docs/tr/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
@@ -77,7 +103,7 @@ Ve `SKILL.md` icerigini `PAGESPEEDINSIGHT_TOOL_GUIDE.md` dosyasindan kopyalar.
 
 Secenek A: npm kurulumunda otomatik (onerilen)
 ```bash
-OPENCLAW_DIR=/openclaw/tam/yol OPENCLAW_SKILL_OWNER=node:node npm install -g pagespeedinsight-mcp
+OPENCLAW_DIR=/openclaw/tam/yol OPENCLAW_SKILL_OWNER=node:node npm install -g @denizhosgor/pagespeedinsight-mcp
 ```
 
 Secenek B: manuel

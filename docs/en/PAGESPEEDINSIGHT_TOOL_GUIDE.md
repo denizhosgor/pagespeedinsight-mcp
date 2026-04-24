@@ -20,6 +20,7 @@ Runs an analysis for a single strategy (mobile/desktop).
   - `categories` scores (0-100)
   - `key_metrics` (FCP/LCP/CLS/TBT/INP etc.)
   - `top_opportunities` (highest estimated savings)
+- `saved_report_path`: Full path of the saved raw JSON report file (`report/<url>-<timestamp>.json`)
 
 ### 2) `compare_pagespeed`
 Compares mobile + desktop results for the same URL.
@@ -34,6 +35,17 @@ Compares mobile + desktop results for the same URL.
 - `mobile` summary
 - `desktop` summary
 - `performance_delta_desktop_minus_mobile`
+- `saved_report_path`: Full path of saved combined raw JSON report (mobile + desktop)
+
+## Reporting Behavior
+
+1. Every call writes a JSON report file to disk.
+2. By default files are written under `report/` in current working directory.
+3. You can override directory via `PAGESPEEDINSIGHT_REPORT_DIR`.
+4. For `compare_pagespeed`, saved file includes both raw payloads:
+   - `mobile`
+   - `desktop`
+   - plus `url` and `saved_at`
 
 ## Agent Usage Rules
 
@@ -53,7 +65,7 @@ Compares mobile + desktop results for the same URL.
 {
   "tool": "run_pagespeed",
   "arguments": {
-    "url": "[https://example.com](https://example.com)",
+    "url": "https://example.com",
     "strategy": "mobile",
     "categories": ["performance", "seo"],
     "locale": "tr-TR"
@@ -66,12 +78,19 @@ Compares mobile + desktop results for the same URL.
 {
   "tool": "compare_pagespeed",
   "arguments": {
-    "url": "[https://example.com](https://example.com)",
+    "url": "https://example.com",
     "categories": ["performance", "accessibility"],
     "locale": "en-US"
   }
 }
 ```
+
+## Example Result Fields
+
+- `summary.categories.performance`
+- `summary.key_metrics.lcp_ms`
+- `summary.top_opportunities`
+- `saved_report_path`
 
 ## Suggested Agent Response Format
 

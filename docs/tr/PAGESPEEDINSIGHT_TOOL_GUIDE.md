@@ -20,6 +20,7 @@ Tek bir strateji (mobile/desktop) için analiz çalıştırır.
   - `categories` skorları (0-100)
   - `key_metrics` (FCP/LCP/CLS/TBT/INP vb.)
   - `top_opportunities` (en yüksek tahmini kazanım)
+- `saved_report_path`: Kaydedilen ham JSON rapor dosyasının tam yolu (`report/<url>-<timestamp>.json`)
 
 ### 2) `compare_pagespeed`
 Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
@@ -34,6 +35,17 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
 - `mobile` özeti
 - `desktop` özeti
 - `performance_delta_desktop_minus_mobile`
+- `saved_report_path`: Kaydedilen birlesik ham JSON rapor dosyasinin tam yolu (mobile + desktop)
+
+## Raporlama davranisi
+
+1. Her cagrida diske JSON rapor dosyasi yazilir.
+2. Varsayilan olarak dosyalar calisma dizinindeki `report/` altina yazilir.
+3. Dizin `PAGESPEEDINSIGHT_REPORT_DIR` ile degistirilebilir.
+4. `compare_pagespeed` kayit dosyasinda iki ham payload birlikte tutulur:
+   - `mobile`
+   - `desktop`
+   - ek olarak `url` ve `saved_at`
 
 ## Ajan kullanım kuralları
 
@@ -72,6 +84,13 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
   }
 }
 ```
+
+## Ornek sonuc alanlari
+
+- `summary.categories.performance`
+- `summary.key_metrics.lcp_ms`
+- `summary.top_opportunities`
+- `saved_report_path`
 
 ## Ajan cevap formatı önerisi
 

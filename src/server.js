@@ -1,10 +1,13 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import fs from "node:fs";
+import path from "node:path";
 import { z } from "zod";
 
 export const PSI_ENDPOINT = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
 export const DEFAULT_TIMEOUT_SECONDS = 60;
 export const DEFAULT_CATEGORIES = ["performance", "accessibility", "best-practices", "seo"];
+export const DEFAULT_REPORT_DIR_NAME = "report";
 
 export function normalizeUrl(url) {
   const trimmed = String(url || "").trim();
@@ -35,6 +38,35 @@ export function normalizeCategories(categories) {
     .filter(Boolean);
 
   return normalized.length > 0 ? normalized : DEFAULT_CATEGORIES;
+}
+
+export function getReportDir() {
+  const envDir = String(process.env.PAGESPEEDINSIGHT_REPORT_DIR || "").trim();
+  if (envDir) {
+    return path.resolve(envDir);
+  }
+  return path.resolve(process.cwd(), DEFAULT_REPORT_DIR_NAME);
+}
+
+export function formatTimestampForFile(date = new Date()) {
+  return date.toISOString().replace(/[:.]/g, "-");
+}
+
+export function sanitizeUrlForFilename(url) {
+  const normalized = normalizeUrl(url);
+  const withoutProtocol = normalized.replace(/^https?:\/\//i, "");
+  const safe = withoutProtocol.replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "");
+  if (!safe) return "url";
+  return safe.slice(0, 180);
+}
+
+export function saveReportToFile(url, payload) {
+  const reportDir = getReportDir();
+  fs.mkdirSync(reportDir, { recursive: true });
+  const filename = `${sanitizeUrlForFilename(url)}-${formatTimestampForFile()}.json`;
+  const reportPath = path.join(reportDir, filename);
+  fs.writeFileSync(reportPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+  return reportPath;
 }
 
 function scorePercent(score) {
@@ -185,14 +217,16 @@ export async function runPagespeedTool({
   timeout_seconds: timeoutSeconds = DEFAULT_TIMEOUT_SECONDS,
   include_raw: includeRaw = false
 }) {
+  const normalizedUrl = normalizeUrl(url);
   const normalizedStrategy = String(strategy || "mobile").trim().toLowerCase();
   const normalizedCategories = normalizeCategories(categories);
-  const report = await fetchPsi(url, normalizedStrategy, normalizedCategories, locale, timeoutSeconds);
+  const report = await fetchPsi(normalizedUrl, normalizedStrategy, normalizedCategories, locale, timeoutSeconds);
   const summary = summarizeReport(report, normalizedStrategy, normalizedCategories);
+  const savedReportPath = saveReportToFile(normalizedUrl, report);
   if (includeRaw) {
-    return { summary, raw: report };
+    return { summary, raw: report, saved_report_path: savedReportPath };
   }
-  return { summary };
+  return { summary, saved_report_path: savedReportPath };
 }
 
 export async function comparePagespeedTool({
@@ -201,9 +235,10 @@ export async function comparePagespeedTool({
   locale = "en-US",
   timeout_seconds: timeoutSeconds = DEFAULT_TIMEOUT_SECONDS
 }) {
+  const normalizedUrl = normalizeUrl(url);
   const normalizedCategories = normalizeCategories(categories);
-  const mobile = await fetchPsi(url, "mobile", normalizedCategories, locale, timeoutSeconds);
-  const desktop = await fetchPsi(url, "desktop", normalizedCategories, locale, timeoutSeconds);
+  const mobile = await fetchPsi(normalizedUrl, "mobile", normalizedCategories, locale, timeoutSeconds);
+  const desktop = await fetchPsi(normalizedUrl, "desktop", normalizedCategories, locale, timeoutSeconds);
 
   const mobileSummary = summarizeReport(mobile, "mobile", normalizedCategories);
   const desktopSummary = summarizeReport(desktop, "desktop", normalizedCategories);
@@ -215,11 +250,19 @@ export async function comparePagespeedTool({
       ? Number((perfDesktop - perfMobile).toFixed(2))
       : null;
 
+  const savedReportPath = saveReportToFile(normalizedUrl, {
+    url: normalizedUrl,
+    saved_at: new Date().toISOString(),
+    mobile,
+    desktop
+  });
+
   return {
-    url: normalizeUrl(url),
+    url: normalizedUrl,
     performance_delta_desktop_minus_mobile: perfDelta,
     mobile: mobileSummary,
-    desktop: desktopSummary
+    desktop: desktopSummary,
+    saved_report_path: savedReportPath
   };
 }
 

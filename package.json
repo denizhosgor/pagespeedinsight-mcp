@@ -1,5 +1,5 @@
 {
-  "name": "pagespeedinsight-mcp",
+  "name": "@denizhosgor/pagespeedinsight-mcp",
   "version": "0.1.8",
   "description": "MCP server for Google PageSpeed Insights",
   "type": "module",
