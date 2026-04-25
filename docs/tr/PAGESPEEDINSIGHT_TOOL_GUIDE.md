@@ -48,11 +48,27 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
 - `performance_delta_desktop_minus_mobile`
 - `saved_report_path`: Kaydedilen birlesik ham JSON rapor dosyasinin tam yolu (mobile + desktop)
 
+### 3) `check_plugin_version` (Paperclip)
+Kurulu plugin surumunun npm'deki son surumden geri olup olmadigini kontrol eder.
+
+**Input**
+- `force_refresh` (opsiyonel, bool): `true` olursa cache kullanmadan npm registry'den yeni sorgu yapar.
+- `timeout_ms` (opsiyonel, int): Registry istek timeout suresi (1000-20000, varsayilan: 5000).
+
+**Output**
+- `package_name`
+- `installed_version`
+- `latest_version`
+- `update_available` (`true`/`false`/`null`)
+- `comparison` (`outdated`, `up_to_date`, `ahead`, `unknown`)
+- `checked_at`
+
 ## Paperclip tool adlari
 
 Paperclip worker icinde tool'lar plugin prefix ile acilir:
 - `pagespeedinsight-mcp:run_pagespeed`
 - `pagespeedinsight-mcp:compare_pagespeed`
+- `pagespeedinsight-mcp:check_plugin_version`
 
 ## Raporlama davranisi
 
@@ -103,6 +119,16 @@ Paperclip worker icinde tool'lar plugin prefix ile acilir:
     "url": "https://example.com",
     "categories": ["performance", "accessibility"],
     "locale": "en-US"
+  }
+}
+```
+
+### Örnek 3: Plugin guncelleme kontrolu
+```json
+{
+  "tool": "check_plugin_version",
+  "arguments": {
+    "force_refresh": true
   }
 }
 ```

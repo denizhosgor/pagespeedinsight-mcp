@@ -1,5 +1,6 @@
 import { definePlugin, runWorker } from "@paperclipai/plugin-sdk";
 import { comparePagespeedTool, runPagespeedTool } from "../src/core/pagespeed.js";
+import { checkPackageVersion } from "../src/core/version-check.js";
 const runPagespeedDeclaration = {
     displayName: "Run PageSpeed Insights",
     description: "Generate full PageSpeed reports for a page.",
@@ -35,6 +36,18 @@ const comparePagespeedDeclaration = {
             utm_campaign: { type: "string" },
             utm_source: { type: "string" },
             captcha_token: { type: "string" }
+        }
+    }
+};
+const checkPluginVersionDeclaration = {
+    displayName: "Check Plugin Version",
+    description: "Checks installed plugin version against the latest npm version.",
+    parametersSchema: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+            force_refresh: { type: "boolean", default: false },
+            timeout_ms: { type: "integer", minimum: 1000, maximum: 20000, default: 5000 }
         }
     }
 };
@@ -91,6 +104,13 @@ function toComparePagespeedInput(input) {
         captcha_token: typeof params.captcha_token === "string" ? params.captcha_token : undefined
     };
 }
+function toVersionCheckInput(input) {
+    const params = asObject(input);
+    return {
+        force_refresh: typeof params.force_refresh === "boolean" ? params.force_refresh : undefined,
+        timeout_ms: typeof params.timeout_ms === "number" ? params.timeout_ms : undefined
+    };
+}
 const plugin = definePlugin({
     async setup(ctx) {
         ctx.tools.register("run_pagespeed", runPagespeedDeclaration, async (params) => {
@@ -113,12 +133,35 @@ const plugin = definePlugin({
                 return { error: getErrorMessage(error) };
             }
         });
+        ctx.tools.register("check_plugin_version", checkPluginVersionDeclaration, async (params) => {
+            try {
+                const result = await checkPackageVersion(toVersionCheckInput(params));
+                return asToolResult(result);
+            }
+            catch (error) {
+                ctx.logger.error("check_plugin_version failed", { error: getErrorMessage(error) });
+                return { error: getErrorMessage(error) };
+            }
+        });
     },
     async onHealth() {
-        return {
-            status: "ok",
-            message: "pagespeedinsight-mcp worker is running"
-        };
+        try {
+            const versionStatus = await checkPackageVersion({ timeout_ms: 3000 });
+            return {
+                status: "ok",
+                message: "pagespeedinsight-mcp worker is running",
+                version_check: versionStatus
+            };
+        }
+        catch (error) {
+            return {
+                status: "ok",
+                message: "pagespeedinsight-mcp worker is running",
+                version_check: {
+                    error: getErrorMessage(error)
+                }
+            };
+        }
     }
 });
 export default plugin;

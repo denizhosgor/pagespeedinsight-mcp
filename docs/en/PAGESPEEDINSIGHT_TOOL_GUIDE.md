@@ -48,11 +48,27 @@ Compares mobile + desktop results for the same URL.
 - `performance_delta_desktop_minus_mobile`
 - `saved_report_path`: Full path of saved combined raw JSON report (mobile + desktop)
 
+### 3) `check_plugin_version` (Paperclip)
+Checks whether the installed plugin version is behind the latest npm release.
+
+**Input**
+- `force_refresh` (optional, bool): If `true`, bypasses cache and fetches from npm registry.
+- `timeout_ms` (optional, int): Registry request timeout (1000-20000, default: 5000).
+
+**Output**
+- `package_name`
+- `installed_version`
+- `latest_version`
+- `update_available` (`true`/`false`/`null`)
+- `comparison` (`outdated`, `up_to_date`, `ahead`, `unknown`)
+- `checked_at`
+
 ## Paperclip tool names
 
 When called inside Paperclip worker runtime, tools are exposed with plugin prefix:
 - `pagespeedinsight-mcp:run_pagespeed`
 - `pagespeedinsight-mcp:compare_pagespeed`
+- `pagespeedinsight-mcp:check_plugin_version`
 
 ## Reporting Behavior
 
@@ -103,6 +119,16 @@ When called inside Paperclip worker runtime, tools are exposed with plugin prefi
     "url": "https://example.com",
     "categories": ["performance", "accessibility"],
     "locale": "en-US"
+  }
+}
+```
+
+### Example 3: Plugin update check
+```json
+{
+  "tool": "check_plugin_version",
+  "arguments": {
+    "force_refresh": true
   }
 }
 ```

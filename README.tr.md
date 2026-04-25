@@ -79,6 +79,8 @@ Bu paket resmi scaffold akisina uygun Paperclip plugin manifest + worker yapisin
 - Paperclip tool adlari:
   - `pagespeedinsight-mcp:run_pagespeed`
   - `pagespeedinsight-mcp:compare_pagespeed`
+  - `pagespeedinsight-mcp:check_plugin_version`
+- Worker health cevabina registry erisimi varsa `version_check` bilgisi (`installed_version`, `latest_version`, `update_available`) eklenir.
 
 Cift giris noktasi davranisi:
 - OpenClaw (MCP istemcileri) paket `bin` yolunu (`pagespeedinsight-mcp`) ve stdio MCP protokolunu kullanir.
@@ -103,6 +105,7 @@ NPX ile:
 
 - `run_pagespeed`
 - `compare_pagespeed`
+- `check_plugin_version` (Paperclip guncelleme kontrolu)
 - Ham rapor JSON dosyasi otomatik olarak `report/<url>-<timestamp>.json` altina kaydedilir
 - Kayit dizinini degistirmek icin: `PAGESPEEDINSIGHT_REPORT_DIR=/ozel/yol`
 

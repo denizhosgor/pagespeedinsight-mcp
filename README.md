@@ -84,6 +84,8 @@ This package also contains a Paperclip plugin manifest + worker implementation u
 - Registered Paperclip tools:
   - `pagespeedinsight-mcp:run_pagespeed`
   - `pagespeedinsight-mcp:compare_pagespeed`
+  - `pagespeedinsight-mcp:check_plugin_version`
+- Worker health includes `version_check` details (`installed_version`, `latest_version`, `update_available`) when registry is reachable.
 
 Dual entrypoint behavior:
 - OpenClaw (MCP clients) use package `bin` (`pagespeedinsight-mcp`) and stdio MCP protocol.
@@ -127,6 +129,7 @@ If your environment requires `node:node` ownership, run install with a user that
 
 - `run_pagespeed`
 - `compare_pagespeed`
+- `check_plugin_version` (Paperclip update check)
 - Raw report JSON is automatically saved under `report/<url>-<timestamp>.json`
 - You can override output directory with `PAGESPEEDINSIGHT_REPORT_DIR=/custom/path`
 

@@ -6,7 +6,8 @@ Use this skill when you need to analyze a web page with Google PageSpeed Insight
 
 - `run_pagespeed`
 - `compare_pagespeed`
-- In Paperclip runtime: `pagespeedinsight-mcp:run_pagespeed`, `pagespeedinsight-mcp:compare_pagespeed`
+- `check_plugin_version` (Paperclip update check)
+- In Paperclip runtime: `pagespeedinsight-mcp:run_pagespeed`, `pagespeedinsight-mcp:compare_pagespeed`, `pagespeedinsight-mcp:check_plugin_version`
 
 ## Usage flow
 

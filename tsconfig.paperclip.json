@@ -16,7 +16,8 @@
   "include": [
     "src/manifest.ts",
     "src/worker.ts",
-    "src/core/pagespeed.d.ts"
+    "src/core/pagespeed.d.ts",
+    "src/core/version-check.d.ts"
   ],
   "exclude": [
     "dist",

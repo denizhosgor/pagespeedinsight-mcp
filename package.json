@@ -30,7 +30,7 @@
     "typecheck": "tsc -p tsconfig.paperclip.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && node --check src/core/pagespeed.js && node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && node --check scripts/install-skill.js && npm run test",
+    "check": "npm run typecheck && node --check src/core/pagespeed.js && node --check src/core/version-check.js && node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && node --check scripts/install-skill.js && npm run test",
     "security:prod": "npm_config_cache=.npm-cache npm audit --omit=dev --audit-level=high",
     "security:full": "npm_config_cache=.npm-cache npm audit --audit-level=moderate",
     "pack:dry-run": "npm_config_cache=.npm-cache npm pack --dry-run",

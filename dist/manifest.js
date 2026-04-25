@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 const runPagespeedParametersSchema = {
     type: "object",
     additionalProperties: false,
@@ -28,10 +31,33 @@ const comparePagespeedParametersSchema = {
         captcha_token: { type: "string" }
     }
 };
+const checkPluginVersionParametersSchema = {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+        force_refresh: { type: "boolean", default: false },
+        timeout_ms: { type: "integer", minimum: 1000, maximum: 20000, default: 5000 }
+    }
+};
+function resolvePackageVersion() {
+    try {
+        const currentFile = fileURLToPath(import.meta.url);
+        const packageJsonPath = path.resolve(path.dirname(currentFile), "..", "package.json");
+        const raw = fs.readFileSync(packageJsonPath, "utf8");
+        const pkg = JSON.parse(raw);
+        const version = String(pkg?.version || "").trim();
+        if (version)
+            return version;
+    }
+    catch {
+        // noop
+    }
+    return "0.0.0";
+}
 const manifest = {
     id: "pagespeedinsight-mcp",
     apiVersion: 1,
-    version: "0.1.9",
+    version: resolvePackageVersion(),
     displayName: "PageSpeed Insights MCP",
     description: "Run PageSpeed Insights analysis and comparisons as agent tools.",
     author: "Deniz HOSGOR",
@@ -52,6 +78,12 @@ const manifest = {
             displayName: "Compare PageSpeed Insights",
             description: "Compare mobile and desktop PageSpeed reports for the same URL.",
             parametersSchema: comparePagespeedParametersSchema
+        },
+        {
+            name: "check_plugin_version",
+            displayName: "Check Plugin Version",
+            description: "Checks installed plugin version against the latest npm version.",
+            parametersSchema: checkPluginVersionParametersSchema
         }
     ]
 };
