@@ -9,7 +9,7 @@ Runs an analysis for a single strategy (mobile/desktop).
 
 **Input**
 - `url` (required, string): Target URL. (`https://...` is recommended)
-- `strategy` (optional, string): `mobile` or `desktop` (default: `mobile`)
+- `strategy` (optional, string): `mobile` or `desktop` (default: `desktop`)
 - `categories` (optional, string[]): e.g., `["performance","seo"]`
 - `locale` (optional, string): e.g., `tr-TR`, `en-US` (default: `en-US`)
 - `timeout_seconds` (optional, int): Between 5-180 (default: 60)
@@ -48,16 +48,23 @@ Compares mobile + desktop results for the same URL.
 - `performance_delta_desktop_minus_mobile`
 - `saved_report_path`: Full path of saved combined raw JSON report (mobile + desktop)
 
+## Paperclip tool names
+
+When called inside Paperclip worker runtime, tools are exposed with plugin prefix:
+- `pagespeedinsight-mcp:run_pagespeed`
+- `pagespeedinsight-mcp:compare_pagespeed`
+
 ## Reporting Behavior
 
 1. Every call writes a JSON report file to disk.
 2. By default files are written under `report/` in current working directory.
 3. You can override directory via `PAGESPEEDINSIGHT_REPORT_DIR`.
-4. For `run_pagespeed`, saved file contains:
+4. If `categories` is omitted, only `performance` category is requested by default.
+5. For `run_pagespeed`, saved file contains:
    - `request_context`
    - `response_summary`
    - `raw_response`
-5. For `compare_pagespeed`, saved file contains:
+6. For `compare_pagespeed`, saved file contains:
    - `request_context`
    - `comparison_summary`
    - `raw_response.mobile` and `raw_response.desktop`

@@ -46,6 +46,24 @@ Global paket ile:
 }
 ```
 
+## Paperclip plugin destegi
+
+Bu paket Paperclip manifest ve worker entrypoint de icerir.
+
+- Plugin manifest konumu: `package.json > paperclip`
+- Plugin id: `pagespeedinsight-mcp`
+- Worker entrypoint: `src/paperclip-worker.js`
+- Yetkiler:
+  - `agent.tools.register`
+  - `http.outbound`
+- Paperclip tool adlari:
+  - `pagespeedinsight-mcp:run_pagespeed`
+  - `pagespeedinsight-mcp:compare_pagespeed`
+
+Cift giris noktasi davranisi:
+- OpenClaw (MCP istemcileri) paket `bin` yolunu (`pagespeedinsight-mcp`) ve stdio MCP protokolunu kullanir.
+- Paperclip runtime MCP `bin` kismini kullanmaz, `paperclip.entrypoints.worker` dosyasini yukler.
+
 NPX ile:
 ```json
 {
@@ -74,6 +92,8 @@ NPX ile:
 - Varsayilan klasor: `<calisma-dizini>/report`
 - Dosya adi formati: `<normalize-url>-<timestamp>.json`
 - Timestamp formati: dosya adina uygun UTC ISO benzeri format.
+- `run_pagespeed` icin varsayilan strategy: `desktop`
+- `categories` gonderilmezse varsayilan olarak sadece `performance` kategorisi istenir.
 - Her iki tool icin desteklenen opsiyonel query alanlari:
   - `utm_campaign`
   - `utm_source`
