@@ -53,11 +53,12 @@ export PAGESPEEDINSIGHT_API_KEY=YOUR_API_KEY
 
 ## Paperclip plugin support
 
-This package also contains a Paperclip plugin manifest and worker entrypoint.
+This package also contains a Paperclip plugin manifest + worker implementation using the official scaffold-style layout (`src/manifest.ts`, `src/worker.ts`).
 
-- Plugin manifest location: `package.json > paperclip`
+- Plugin package wiring: `package.json > paperclipPlugin`
+- Manifest source: `src/manifest.ts` (built to `dist/manifest.js`)
 - Plugin id: `pagespeedinsight-mcp`
-- Worker entrypoint: `src/paperclip-worker.js`
+- Worker source: `src/worker.ts` (built to `dist/worker.js`)
 - Capabilities:
   - `agent.tools.register`
   - `http.outbound`
@@ -67,7 +68,7 @@ This package also contains a Paperclip plugin manifest and worker entrypoint.
 
 Dual entrypoint behavior:
 - OpenClaw (MCP clients) use package `bin` (`pagespeedinsight-mcp`) and stdio MCP protocol.
-- Paperclip runtime ignores MCP `bin` and loads `paperclip.entrypoints.worker`.
+- Paperclip runtime ignores MCP `bin` and loads `paperclipPlugin.worker`.
 
 ## Install OpenClaw skill file
 
@@ -150,6 +151,8 @@ Agent usage guide:
 
 ```bash
 npm install
+npm run build
+npm run typecheck
 npm run check
 npm test
 ```

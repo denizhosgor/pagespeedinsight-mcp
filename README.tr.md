@@ -48,11 +48,12 @@ Global paket ile:
 
 ## Paperclip plugin destegi
 
-Bu paket Paperclip manifest ve worker entrypoint de icerir.
+Bu paket resmi scaffold akisina uygun Paperclip plugin manifest + worker yapisini da icerir (`src/manifest.ts`, `src/worker.ts`).
 
-- Plugin manifest konumu: `package.json > paperclip`
+- Paket baglanti alani: `package.json > paperclipPlugin`
+- Manifest kaynak dosyasi: `src/manifest.ts` (`dist/manifest.js` olarak derlenir)
 - Plugin id: `pagespeedinsight-mcp`
-- Worker entrypoint: `src/paperclip-worker.js`
+- Worker kaynak dosyasi: `src/worker.ts` (`dist/worker.js` olarak derlenir)
 - Yetkiler:
   - `agent.tools.register`
   - `http.outbound`
@@ -62,7 +63,7 @@ Bu paket Paperclip manifest ve worker entrypoint de icerir.
 
 Cift giris noktasi davranisi:
 - OpenClaw (MCP istemcileri) paket `bin` yolunu (`pagespeedinsight-mcp`) ve stdio MCP protokolunu kullanir.
-- Paperclip runtime MCP `bin` kismini kullanmaz, `paperclip.entrypoints.worker` dosyasini yukler.
+- Paperclip runtime MCP `bin` kismini kullanmaz, `paperclipPlugin.worker` yolunu yukler.
 
 NPX ile:
 ```json
@@ -160,6 +161,8 @@ Ortaminda `node:node` sahipligi zorunluysa, kurulumu `chown` yetkisi olan kullan
 
 ```bash
 npm install
+npm run build
+npm run typecheck
 npm run check
 npm start
 ```
