@@ -1,5 +1,24 @@
 # @denizhosgor/pagespeedinsight-mcp
 
+## Desteklenen Platformlar
+
+<p>
+  <a href="https://openclaw.ai">
+    <img src="https://avatars.githubusercontent.com/u/252820863?s=64&v=4" alt="OpenClaw Logo" height="34" />
+  </a>
+  <a href="https://paperclip.ing">
+    <img src="https://avatars.githubusercontent.com/u/264498616?s=64&v=4" alt="Paperclip Logo" height="34" />
+  </a>
+</p>
+
+![OpenClaw](https://img.shields.io/badge/OPENCLAW-SUPPORTED-2563EB?style=for-the-badge&labelColor=4B5563)
+![Paperclip](https://img.shields.io/badge/PAPERCLIP-SUPPORTED-1D4ED8?style=for-the-badge&labelColor=4B5563)
+![Build](https://img.shields.io/badge/BUILD-PASSING-44CC11?style=for-the-badge&labelColor=4B5563)
+![Tests](https://img.shields.io/badge/TESTS-PASSING-44CC11?style=for-the-badge&labelColor=4B5563)
+![Vulnerabilities](https://img.shields.io/badge/VULNERABILITIES-0%20HIGH%2FCRITICAL-44CC11?style=for-the-badge&labelColor=4B5563)
+![Release](https://img.shields.io/npm/v/%40denizhosgor%2Fpagespeedinsight-mcp?style=for-the-badge&label=RELEASE&labelColor=4B5563)
+![License](https://img.shields.io/badge/LICENSE-MIT-007EC6?style=for-the-badge&labelColor=4B5563)
+
 Google PageSpeed Insights'i MCP tool olarak sunan Node.js sunucu paketi.
 
 OpenClaw ve MCP uyumlu diğer projelerdeki ajanlar bu sunucu ile:
