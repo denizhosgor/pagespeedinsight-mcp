@@ -46,6 +46,25 @@ Global paket ile:
 }
 ```
 
+## Paperclip plugin destegi
+
+Bu paket resmi scaffold akisina uygun Paperclip plugin manifest + worker yapisini da icerir (`src/manifest.ts`, `src/worker.ts`).
+
+- Paket baglanti alani: `package.json > paperclipPlugin`
+- Manifest kaynak dosyasi: `src/manifest.ts` (`dist/manifest.js` olarak derlenir)
+- Plugin id: `pagespeedinsight-mcp`
+- Worker kaynak dosyasi: `src/worker.ts` (`dist/worker.js` olarak derlenir)
+- Yetkiler:
+  - `agent.tools.register`
+  - `http.outbound`
+- Paperclip tool adlari:
+  - `pagespeedinsight-mcp:run_pagespeed`
+  - `pagespeedinsight-mcp:compare_pagespeed`
+
+Cift giris noktasi davranisi:
+- OpenClaw (MCP istemcileri) paket `bin` yolunu (`pagespeedinsight-mcp`) ve stdio MCP protokolunu kullanir.
+- Paperclip runtime MCP `bin` kismini kullanmaz, `paperclipPlugin.worker` yolunu yukler.
+
 NPX ile:
 ```json
 {
@@ -74,6 +93,8 @@ NPX ile:
 - Varsayilan klasor: `<calisma-dizini>/report`
 - Dosya adi formati: `<normalize-url>-<timestamp>.json`
 - Timestamp formati: dosya adina uygun UTC ISO benzeri format.
+- `run_pagespeed` icin varsayilan strategy: `desktop`
+- `categories` gonderilmezse varsayilan olarak sadece `performance` kategorisi istenir.
 - Her iki tool icin desteklenen opsiyonel query alanlari:
   - `utm_campaign`
   - `utm_source`
@@ -140,6 +161,8 @@ Ortaminda `node:node` sahipligi zorunluysa, kurulumu `chown` yetkisi olan kullan
 
 ```bash
 npm install
+npm run build
+npm run typecheck
 npm run check
 npm start
 ```

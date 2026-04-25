@@ -9,7 +9,7 @@ Tek bir strateji (mobile/desktop) için analiz çalıştırır.
 
 **Input**
 - `url` (zorunlu, string): Hedef URL. (`https://...` önerilir)
-- `strategy` (opsiyonel, string): `mobile` veya `desktop` (varsayılan: `mobile`)
+- `strategy` (opsiyonel, string): `mobile` veya `desktop` (varsayılan: `desktop`)
 - `categories` (opsiyonel, string[]): Örn: `["performance","seo"]`
 - `locale` (opsiyonel, string): Örn: `tr-TR`, `en-US` (varsayılan: `en-US`)
 - `timeout_seconds` (opsiyonel, int): 5-180 arası (varsayılan: 60)
@@ -48,16 +48,23 @@ Aynı URL için mobile + desktop sonuçlarını karşılaştırır.
 - `performance_delta_desktop_minus_mobile`
 - `saved_report_path`: Kaydedilen birlesik ham JSON rapor dosyasinin tam yolu (mobile + desktop)
 
+## Paperclip tool adlari
+
+Paperclip worker icinde tool'lar plugin prefix ile acilir:
+- `pagespeedinsight-mcp:run_pagespeed`
+- `pagespeedinsight-mcp:compare_pagespeed`
+
 ## Raporlama davranisi
 
 1. Her cagrida diske JSON rapor dosyasi yazilir.
 2. Varsayilan olarak dosyalar calisma dizinindeki `report/` altina yazilir.
 3. Dizin `PAGESPEEDINSIGHT_REPORT_DIR` ile degistirilebilir.
-4. `run_pagespeed` kayit dosyasi su alanlari icerir:
+4. `categories` gonderilmezse varsayilan olarak sadece `performance` kategorisi istenir.
+5. `run_pagespeed` kayit dosyasi su alanlari icerir:
    - `request_context`
    - `response_summary`
    - `raw_response`
-5. `compare_pagespeed` kayit dosyasi su alanlari icerir:
+6. `compare_pagespeed` kayit dosyasi su alanlari icerir:
    - `request_context`
    - `comparison_summary`
    - `raw_response.mobile` ve `raw_response.desktop`

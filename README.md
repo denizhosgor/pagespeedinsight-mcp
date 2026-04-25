@@ -51,6 +51,25 @@ export PAGESPEEDINSIGHT_API_KEY=YOUR_API_KEY
 }
 ```
 
+## Paperclip plugin support
+
+This package also contains a Paperclip plugin manifest + worker implementation using the official scaffold-style layout (`src/manifest.ts`, `src/worker.ts`).
+
+- Plugin package wiring: `package.json > paperclipPlugin`
+- Manifest source: `src/manifest.ts` (built to `dist/manifest.js`)
+- Plugin id: `pagespeedinsight-mcp`
+- Worker source: `src/worker.ts` (built to `dist/worker.js`)
+- Capabilities:
+  - `agent.tools.register`
+  - `http.outbound`
+- Registered Paperclip tools:
+  - `pagespeedinsight-mcp:run_pagespeed`
+  - `pagespeedinsight-mcp:compare_pagespeed`
+
+Dual entrypoint behavior:
+- OpenClaw (MCP clients) use package `bin` (`pagespeedinsight-mcp`) and stdio MCP protocol.
+- Paperclip runtime ignores MCP `bin` and loads `paperclipPlugin.worker`.
+
 ## Install OpenClaw skill file
 
 This package can create:
@@ -98,6 +117,8 @@ If your environment requires `node:node` ownership, run install with a user that
 - Default directory: `<current-working-directory>/report`
 - File name format: `<sanitized-url>-<timestamp>.json`
 - Timestamp format: ISO-like UTC string with safe filename characters.
+- Default strategy for `run_pagespeed`: `desktop`
+- If `categories` is omitted, only `performance` category is requested by default.
 - Optional tracking/query fields supported by both tools:
   - `utm_campaign`
   - `utm_source`
@@ -130,6 +151,8 @@ Agent usage guide:
 
 ```bash
 npm install
+npm run build
+npm run typecheck
 npm run check
 npm test
 ```

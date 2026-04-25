@@ -25,7 +25,7 @@ describe("clampTimeout", () => {
 describe("normalizeCategories", () => {
   it("normalizes and falls back to defaults", () => {
     expect(normalizeCategories([" Performance ", "SEO"])).toEqual(["performance", "seo"]);
-    expect(normalizeCategories([])).toEqual(["performance", "accessibility", "best-practices", "seo"]);
+    expect(normalizeCategories([])).toEqual(["performance"]);
   });
 });
 

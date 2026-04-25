@@ -1,6 +1,6 @@
 {
   "name": "@denizhosgor/pagespeedinsight-mcp",
-  "version": "0.1.15",
+  "version": "0.1.18",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
@@ -13,6 +13,7 @@
   },
   "files": [
     "bin",
+    "dist",
     "src",
     "scripts",
     "skills",
@@ -25,13 +26,16 @@
     "postinstall": "node scripts/install-skill.js --auto",
     "start": "node bin/pagespeedinsight-mcp.js",
     "install-skill": "node scripts/install-skill.js",
+    "build": "tsc -p tsconfig.paperclip.json",
+    "typecheck": "tsc -p tsconfig.paperclip.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && node --check scripts/install-skill.js && npm run test",
+    "check": "npm run typecheck && node --check src/core/pagespeed.js && node --check src/server.js && node --check bin/pagespeedinsight-mcp.js && node --check scripts/install-skill.js && npm run test",
     "security:prod": "npm_config_cache=.npm-cache npm audit --omit=dev --audit-level=high",
     "security:full": "npm_config_cache=.npm-cache npm audit --audit-level=moderate",
     "pack:dry-run": "npm_config_cache=.npm-cache npm pack --dry-run",
-    "release:check": "npm run check && npm run security:prod && npm run pack:dry-run"
+    "release:check": "npm run check && npm run security:prod && npm run pack:dry-run",
+    "prepack": "npm run build"
   },
   "keywords": [
     "mcp",
@@ -45,11 +49,18 @@
   "engines": {
     "node": ">=20 <25"
   },
+  "paperclipPlugin": {
+    "manifest": "./dist/manifest.js",
+    "worker": "./dist/worker.js"
+  },
   "dependencies": {
+    "@paperclipai/plugin-sdk": "^2026.416.0",
     "@modelcontextprotocol/sdk": "^1.18.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^24.12.2",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.4"
   }
 }
