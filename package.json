@@ -54,11 +54,11 @@
     "worker": "./dist/worker.js"
   },
   "dependencies": {
+    "@paperclipai/plugin-sdk": "^2026.416.0",
     "@modelcontextprotocol/sdk": "^1.18.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@paperclipai/plugin-sdk": "^2026.416.0",
     "@types/node": "^24.12.2",
     "typescript": "^5.9.3",
     "vitest": "^4.0.4"
