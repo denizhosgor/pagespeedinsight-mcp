@@ -1,0 +1,6 @@
+{
+  "name": "pagespeedinsight-mcp",
+  "version": "0.1.21",
+  "description": "OpenClaw plugin metadata for shipping PageSpeed Insights skill with the npm package.",
+  "skills": ["openclaw/skills/pagespeed_insights"]
+}

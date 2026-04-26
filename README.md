@@ -62,16 +62,19 @@ export PAGESPEEDINSIGHT_API_KEY="YOUR_KEY"
 
 ## OpenClaw Setup
 
-1. Register MCP server:
+1. Install as an OpenClaw plugin (UI or API) using npm spec:
+
+```text
+@denizhosgor/pagespeedinsight-mcp@0.1.21
+```
+
+This package ships `openclaw.plugin.json` and auto-exposes:
+- `openclaw/skills/pagespeed_insights`
+
+2. Register MCP server:
 
 ```bash
 openclaw mcp set pagespeed-insights '{"command":"npx","args":["-y","@denizhosgor/pagespeedinsight-mcp"]}'
-```
-
-2. Install the OpenClaw skill (from package command):
-
-```bash
-pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
 ```
 
 3. Verify skill is loaded:
@@ -87,10 +90,10 @@ openclaw skills list
 /tools verbose
 ```
 
-If you manage skills manually, copy this directory:
+If you are not using OpenClaw plugin install flow, fallback manual skill install is still available:
 
-```text
-openclaw/skills/pagespeed_insights
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
 ```
 
 ### Allowlist Note
@@ -166,7 +169,6 @@ export PAGESPEEDINSIGHT_ALLOWED_OUTBOUND_HOSTS=www.googleapis.com
 ## OpenClaw Skill File
 
 - Repo path: `openclaw/skills/pagespeed_insights/SKILL.md`
-- Packaged fallback: `skills/SKILL.md`
 
 ## Dev and Tests
 

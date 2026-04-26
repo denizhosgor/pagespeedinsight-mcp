@@ -108,18 +108,12 @@ export function runInstallSkill(argv = process.argv.slice(2)) {
   }
 
   const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-  const sourceSkillCandidates = [
-    path.join(packageRoot, "openclaw", "skills", "pagespeed_insights", "SKILL.md"),
-    path.join(packageRoot, "skills", "SKILL.md"),
-    path.join(packageRoot, "docs", "tr", "PAGESPEEDINSIGHT_TOOL_GUIDE.md"),
-    path.join(packageRoot, "docs", "en", "PAGESPEEDINSIGHT_TOOL_GUIDE.md")
-  ];
-  const sourceSkill = sourceSkillCandidates.find((candidate) => fs.existsSync(candidate)) || "";
+  const sourceSkill = path.join(packageRoot, "openclaw", "skills", "pagespeed_insights", "SKILL.md");
   const targetDir = path.join(skillsDir, "pagespeedinsight-mcp");
   const targetSkill = path.join(targetDir, "SKILL.md");
 
   if (!fs.existsSync(sourceSkill)) {
-    throw new Error(`Skill template not found: ${sourceSkill}`);
+    throw new Error(`Skill template not found at canonical path: ${sourceSkill}`);
   }
 
   fs.mkdirSync(targetDir, { recursive: true });

@@ -60,16 +60,19 @@ Iki degisken birden varsa `PAGESPEEDINSIGHT_API_KEY` onceliklidir.
 
 ## OpenClaw Kurulumu
 
-1. MCP sunucusunu kaydet:
+1. Paketi OpenClaw plugin olarak kur (UI veya API ile) npm spec:
+
+```text
+@denizhosgor/pagespeedinsight-mcp@0.1.21
+```
+
+Bu paket `openclaw.plugin.json` ile skill'i otomatik ship eder:
+- `openclaw/skills/pagespeed_insights`
+
+2. MCP sunucusunu kaydet:
 
 ```bash
 openclaw mcp set pagespeed-insights '{"command":"npx","args":["-y","@denizhosgor/pagespeedinsight-mcp"]}'
-```
-
-2. OpenClaw skill dosyasini kur (paket komutu ile):
-
-```bash
-pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
 ```
 
 3. Skill yuklendigini kontrol et:
@@ -85,10 +88,10 @@ openclaw skills list
 /tools verbose
 ```
 
-Skill'i manuel kopyalamak istersen dizin:
+OpenClaw plugin kurulum akisinda degilsen manuel fallback kurulumu kullanabilirsin:
 
-```text
-openclaw/skills/pagespeed_insights
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
 ```
 
 ### Allowlist Notu
@@ -164,7 +167,6 @@ export PAGESPEEDINSIGHT_ALLOWED_OUTBOUND_HOSTS=www.googleapis.com
 ## OpenClaw Skill Dosyasi
 
 - Repo yolu: `openclaw/skills/pagespeed_insights/SKILL.md`
-- Paket icindeki fallback: `skills/SKILL.md`
 
 ## Gelistirme ve Test
 
