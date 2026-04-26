@@ -2,7 +2,7 @@ import { definePlugin, runWorker, type ToolResult } from "@paperclipai/plugin-sd
 
 import { comparePagespeedTool, runPagespeedTool } from "../src/core/pagespeed.js";
 import type { ComparePagespeedInput, RunPagespeedInput } from "../src/core/pagespeed.js";
-import { checkPackageVersion } from "../src/core/version-check.js";
+import { checkPackageVersion, getInstalledPackageInfo } from "../src/core/version-check.js";
 
 const runPagespeedDeclaration = {
   displayName: "Run PageSpeed Insights",
@@ -124,6 +124,11 @@ function toVersionCheckInput(input: unknown): { force_refresh?: boolean; timeout
   };
 }
 
+function isEnvTrue(name: string): boolean {
+  const raw = String(process.env[name] || "").trim().toLowerCase();
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
 const plugin = definePlugin({
   async setup(ctx) {
     ctx.tools.register("run_pagespeed", runPagespeedDeclaration, async (params) => {
@@ -158,6 +163,21 @@ const plugin = definePlugin({
   },
 
   async onHealth() {
+    const installed = getInstalledPackageInfo();
+    const autoVersionCheckEnabled = isEnvTrue("PAGESPEEDINSIGHT_HEALTH_VERSION_CHECK");
+
+    if (!autoVersionCheckEnabled) {
+      return {
+        status: "ok",
+        message: "pagespeedinsight-mcp worker is running",
+        version_check: {
+          enabled: false,
+          installed_version: installed.version || null,
+          note: "Set PAGESPEEDINSIGHT_HEALTH_VERSION_CHECK=true or call check_plugin_version tool."
+        }
+      };
+    }
+
     try {
       const versionStatus = await checkPackageVersion({ timeout_ms: 3000 });
       return {

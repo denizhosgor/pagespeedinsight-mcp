@@ -22,3 +22,6 @@ export interface ComparePagespeedInput {
 
 export function runPagespeedTool(input: RunPagespeedInput): Promise<unknown>;
 export function comparePagespeedTool(input: ComparePagespeedInput): Promise<unknown>;
+export const DEFAULT_ALLOWED_OUTBOUND_HOSTS: string[];
+export function getAllowedOutboundHosts(): string[];
+export function assertAllowedOutboundHost(endpoint: string, allowedHosts?: string[]): void;

@@ -19,65 +19,123 @@
 ![Release](https://img.shields.io/npm/v/%40denizhosgor%2Fpagespeedinsight-mcp?style=for-the-badge&label=RELEASE&labelColor=4B5563)
 ![License](https://img.shields.io/badge/LICENSE-MIT-007EC6?style=for-the-badge&labelColor=4B5563)
 
-Node.js MCP server package that exposes Google PageSpeed Insights as tools.
-
-Agents in OpenClaw and other MCP-compatible systems can use this server to:
-1. Generate page performance reports.
-2. Analyze issues and opportunities from the report.
-3. Re-run after fixes and iterate in an optimization loop.
+Node.js package that exposes Google PageSpeed Insights as MCP tools.
 
 Turkish documentation: `README.tr.md`
 
-## Node.js compatibility
+## Node.js Compatibility
 
-- Supported runtime versions: Node.js `20`, `22`, `24`
-- Default local development target: latest Node.js `24` (`.nvmrc` = `24`)
+- Supported Node.js versions: `20`, `22`, `24`
+- Local development default: latest Node.js `24` (`.nvmrc` = `24`)
 
 ## Install
 
 Global:
+
 ```bash
 npm install -g @denizhosgor/pagespeedinsight-mcp
 ```
 
-Run directly:
+Run:
+
 ```bash
 pagespeedinsight-mcp
 ```
 
 NPX:
+
 ```bash
 npx -y @denizhosgor/pagespeedinsight-mcp
 ```
 
-Optional API key:
+## API Key
+
+Use environment variables (never paste keys into chat/output):
+
 ```bash
-export PAGESPEEDINSIGHT_API_KEY=YOUR_API_KEY
+export GOOGLE_API_KEY="YOUR_KEY"
+# Optional alias supported by this package:
+export PAGESPEEDINSIGHT_API_KEY="YOUR_KEY"
 ```
 
-## OpenClaw MCP config
+`PAGESPEEDINSIGHT_API_KEY` takes precedence when both are set.
+
+## OpenClaw Setup
+
+1. Register MCP server:
+
+```bash
+openclaw mcp set pagespeed-insights '{"command":"npx","args":["-y","@denizhosgor/pagespeedinsight-mcp"]}'
+```
+
+2. Install the OpenClaw skill (from package command):
+
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
+```
+
+3. Verify skill is loaded:
+
+```bash
+openclaw skills list
+```
+
+4. Start a new session and verify runtime tools:
+
+```text
+/new
+/tools verbose
+```
+
+If you manage skills manually, copy this directory:
+
+```text
+openclaw/skills/pagespeed_insights
+```
+
+### Allowlist Note
+
+If your OpenClaw config uses skill allowlists, add `pagespeed_insights`:
 
 ```json
 {
-  "mcpServers": {
-    "pagespeedinsight": {
-      "command": "pagespeedinsight-mcp",
-      "env": {
-        "PAGESPEEDINSIGHT_API_KEY": "YOUR_KEY_OPTIONAL"
-      }
+  "agents": {
+    "defaults": {
+      "skills": ["pagespeed_insights"]
     }
   }
 }
 ```
 
-## Paperclip plugin support
+## Available Tools
 
-This package also contains a Paperclip plugin manifest + worker implementation using the official scaffold-style layout (`src/manifest.ts`, `src/worker.ts`).
+MCP (OpenClaw and MCP clients):
 
-- Plugin package wiring: `package.json > paperclipPlugin`
-- Manifest source: `src/manifest.ts` (built to `dist/manifest.js`)
-- Plugin id: `pagespeedinsight-mcp`
-- Worker source: `src/worker.ts` (built to `dist/worker.js`)
+- `run_pagespeed`
+- `compare_pagespeed`
+
+Paperclip-only:
+
+- `check_plugin_version`
+
+## Reporting
+
+- Each tool call writes a JSON report and returns `saved_report_path`.
+- Default report directory: `<cwd>/report`
+- File format: `<url>-<timestamp>.json`
+- Override directory with `PAGESPEEDINSIGHT_REPORT_DIR=/custom/path`
+
+`run_pagespeed` returns `request_context`, `summary`, optional `raw`, and `saved_report_path`.
+
+`compare_pagespeed` returns `request_context`, `mobile`, `desktop`, `performance_delta_desktop_minus_mobile`, and `saved_report_path`.
+
+## Paperclip Plugin Support
+
+This package includes Paperclip manifest + worker (`src/manifest.ts`, `src/worker.ts`).
+
+- `package.json > paperclipPlugin`
+- Worker entrypoint: `dist/worker.js`
+- Manifest entrypoint: `dist/manifest.js`
 - Capabilities:
   - `agent.tools.register`
   - `http.outbound`
@@ -85,91 +143,32 @@ This package also contains a Paperclip plugin manifest + worker implementation u
   - `pagespeedinsight-mcp:run_pagespeed`
   - `pagespeedinsight-mcp:compare_pagespeed`
   - `pagespeedinsight-mcp:check_plugin_version`
-- Worker health includes `version_check` details (`installed_version`, `latest_version`, `update_available`) when registry is reachable.
 
-Dual entrypoint behavior:
-- OpenClaw (MCP clients) use package `bin` (`pagespeedinsight-mcp`) and stdio MCP protocol.
-- Paperclip runtime ignores MCP `bin` and loads `paperclipPlugin.worker`.
+By default, background registry version checks are disabled in health responses.
+Enable only when needed:
 
-## Install OpenClaw skill file
-
-This package can create:
-`app/skills/pagespeedinsight-mcp/SKILL.md`
-and copies the content from `PAGESPEEDINSIGHT_TOOL_GUIDE.md` into `SKILL.md`.
-
-Option A: auto-install during npm install (recommended)
 ```bash
-OPENCLAW_DIR=/absolute/path/to/openclaw OPENCLAW_SKILL_OWNER=node:node npm install -g @denizhosgor/pagespeedinsight-mcp
+export PAGESPEEDINSIGHT_HEALTH_VERSION_CHECK=true
 ```
 
-Option B: manual install
+## Security Notes
+
+- No npm lifecycle install script (`postinstall`) is used.
+- Outbound host allowlist defaults to `www.googleapis.com`.
+- Override allowlist if needed:
+
 ```bash
-pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
+export PAGESPEEDINSIGHT_ALLOWED_OUTBOUND_HOSTS=www.googleapis.com
 ```
 
-Or provide skills directory directly:
-```bash
-pagespeedinsight-mcp install-skill --skills-dir /absolute/path/to/openclaw/app/skills
-```
+- HTTP error responses are sanitized before returning to tools.
 
-Overwrite existing file:
-```bash
-pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --force --chown node:node
-```
+## OpenClaw Skill File
 
-If your environment requires `node:node` ownership, run install with a user that can execute `chown` (root/sudo).
+- Repo path: `openclaw/skills/pagespeed_insights/SKILL.md`
+- Packaged fallback: `skills/SKILL.md`
 
-## Important: skill vs tool discovery
-
-- `SKILL.md` only explains how the agent should use tools.
-- Tool discovery happens through OpenClaw `mcpServers` config.
-- If the agent says tool is unknown, usually the MCP server is not connected/reloaded.
-
-## Available tools
-
-- `run_pagespeed`
-- `compare_pagespeed`
-- `check_plugin_version` (Paperclip update check)
-- Raw report JSON is automatically saved under `report/<url>-<timestamp>.json`
-- You can override output directory with `PAGESPEEDINSIGHT_REPORT_DIR=/custom/path`
-
-## Reporting and results
-
-- Every tool call writes a report file to disk and returns `saved_report_path`.
-- Default directory: `<current-working-directory>/report`
-- File name format: `<sanitized-url>-<timestamp>.json`
-- Timestamp format: ISO-like UTC string with safe filename characters.
-- Default strategy for `run_pagespeed`: `desktop`
-- If `categories` is omitted, only `performance` category is requested by default.
-- Optional tracking/query fields supported by both tools:
-  - `utm_campaign`
-  - `utm_source`
-  - `captcha_token` (sent as `captchaToken` to PSI API)
-
-`run_pagespeed` response includes:
-- `request_context`
-- `summary`: normalized scores and key metrics
-- `summary.api_metadata` (`kind`, `analysis_utc_timestamp`, `pagespeed_version`, etc.)
-- `summary.lighthouse_context` (`requested_url`, `final_url`, `run_warnings`, `runtime_error`, `config_settings`)
-- `summary.loading_experience.metrics` / `summary.origin_loading_experience.metrics`
-- `saved_report_path`: raw PSI JSON file path
-- `raw`: only when `include_raw=true`
-
-`compare_pagespeed` response includes:
-- `request_context`
-- `mobile`: mobile summary
-- `desktop`: desktop summary
-- `performance_delta_desktop_minus_mobile`
-- `saved_report_path`: combined raw JSON path
-
-Saved report file structure:
-- `run_pagespeed`: `request_context`, `response_summary`, `raw_response`
-- `compare_pagespeed`: `request_context`, `comparison_summary`, `raw_response.mobile`, `raw_response.desktop`
-
-Agent usage guide:
-- `docs/en/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
-
-## Dev and tests
+## Dev and Tests
 
 ```bash
 npm install
@@ -179,7 +178,7 @@ npm run check
 npm test
 ```
 
-## Security and release checks
+## Security and Release Checks
 
 ```bash
 npm run security:prod

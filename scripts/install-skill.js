@@ -102,16 +102,17 @@ export function runInstallSkill(argv = process.argv.slice(2)) {
 
   if (args.auto && !hasTargetInArgsOrEnv && !isLikelyOpenClawRoot) {
     process.stdout.write(
-      "[pagespeedinsight-mcp] postinstall skipped. Set OPENCLAW_DIR or OPENCLAW_SKILLS_DIR, or run install inside /app.\n"
+      "[pagespeedinsight-mcp] auto mode skipped. Set OPENCLAW_DIR or OPENCLAW_SKILLS_DIR, or run install inside /app.\n"
     );
     return;
   }
 
   const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
   const sourceSkillCandidates = [
+    path.join(packageRoot, "openclaw", "skills", "pagespeed_insights", "SKILL.md"),
+    path.join(packageRoot, "skills", "SKILL.md"),
     path.join(packageRoot, "docs", "tr", "PAGESPEEDINSIGHT_TOOL_GUIDE.md"),
-    path.join(packageRoot, "docs", "en", "PAGESPEEDINSIGHT_TOOL_GUIDE.md"),
-    path.join(packageRoot, "skills", "SKILL.md")
+    path.join(packageRoot, "docs", "en", "PAGESPEEDINSIGHT_TOOL_GUIDE.md")
   ];
   const sourceSkill = sourceSkillCandidates.find((candidate) => fs.existsSync(candidate)) || "";
   const targetDir = path.join(skillsDir, "pagespeedinsight-mcp");

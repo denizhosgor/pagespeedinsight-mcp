@@ -19,208 +19,167 @@
 ![Release](https://img.shields.io/npm/v/%40denizhosgor%2Fpagespeedinsight-mcp?style=for-the-badge&label=RELEASE&labelColor=4B5563)
 ![License](https://img.shields.io/badge/LICENSE-MIT-007EC6?style=for-the-badge&labelColor=4B5563)
 
-Google PageSpeed Insights'i MCP tool olarak sunan Node.js sunucu paketi.
+Google PageSpeed Insights'i MCP tool olarak sunan Node.js paketidir.
 
-OpenClaw ve MCP uyumlu diğer projelerdeki ajanlar bu sunucu ile:
-1. Sayfa için detaylı PageSpeed raporu alabilir.
-2. Rapordaki hata ve iyileştirme fırsatlarını analiz edebilir.
-3. Sonuçlara göre optimizasyon yapıp tekrar ölçüm döngüsüne alabilir.
+## Node.js Uyumlulugu
 
-## Node.js uyumlulugu
+- Desteklenen Node.js surumleri: `20`, `22`, `24`
+- Lokal gelistirme varsayilani: en guncel Node.js `24` (`.nvmrc` = `24`)
 
-- Desteklenen surumler: Node.js `20`, `22`, `24`
-- Lokal gelistirme varsayilan hedefi: en guncel Node.js `24` (`.nvmrc` = `24`)
+## Kurulum
 
-## Kurulum ve çalıştırma
+Global:
 
-Global kurulum:
 ```bash
 npm install -g @denizhosgor/pagespeedinsight-mcp
+```
+
+Calistirma:
+
+```bash
 pagespeedinsight-mcp
 ```
 
-NPX ile çalıştırma:
+NPX:
+
 ```bash
 npx -y @denizhosgor/pagespeedinsight-mcp
 ```
 
-Opsiyonel API anahtarı:
+## API Anahtari
+
+Anahtari sadece ortam degiskeni olarak verin (chat/log icine yazmayin):
+
 ```bash
-export PAGESPEEDINSIGHT_API_KEY=YOUR_API_KEY
+export GOOGLE_API_KEY="YOUR_KEY"
+# Bu paket icin desteklenen alternatif ad:
+export PAGESPEEDINSIGHT_API_KEY="YOUR_KEY"
 ```
 
-## OpenClaw MCP konfigürasyonu
+Iki degisken birden varsa `PAGESPEEDINSIGHT_API_KEY` onceliklidir.
 
-Global paket ile:
+## OpenClaw Kurulumu
+
+1. MCP sunucusunu kaydet:
+
+```bash
+openclaw mcp set pagespeed-insights '{"command":"npx","args":["-y","@denizhosgor/pagespeedinsight-mcp"]}'
+```
+
+2. OpenClaw skill dosyasini kur (paket komutu ile):
+
+```bash
+pagespeedinsight-mcp install-skill --openclaw-dir /absolute/path/to/openclaw --chown node:node
+```
+
+3. Skill yuklendigini kontrol et:
+
+```bash
+openclaw skills list
+```
+
+4. Yeni oturum acip runtime tool listesini kontrol et:
+
+```text
+/new
+/tools verbose
+```
+
+Skill'i manuel kopyalamak istersen dizin:
+
+```text
+openclaw/skills/pagespeed_insights
+```
+
+### Allowlist Notu
+
+OpenClaw tarafinda skill allowlist kullaniyorsan `pagespeed_insights` ekle:
+
 ```json
 {
-  "mcpServers": {
-    "pagespeedinsight": {
-      "command": "pagespeedinsight-mcp",
-      "env": {
-        "PAGESPEEDINSIGHT_API_KEY": "YOUR_KEY_OPTIONAL"
-      }
+  "agents": {
+    "defaults": {
+      "skills": ["pagespeed_insights"]
     }
   }
 }
 ```
 
-## Paperclip plugin destegi
+## Mevcut Toollar
 
-Bu paket resmi scaffold akisina uygun Paperclip plugin manifest + worker yapisini da icerir (`src/manifest.ts`, `src/worker.ts`).
-
-- Paket baglanti alani: `package.json > paperclipPlugin`
-- Manifest kaynak dosyasi: `src/manifest.ts` (`dist/manifest.js` olarak derlenir)
-- Plugin id: `pagespeedinsight-mcp`
-- Worker kaynak dosyasi: `src/worker.ts` (`dist/worker.js` olarak derlenir)
-- Yetkiler:
-  - `agent.tools.register`
-  - `http.outbound`
-- Paperclip tool adlari:
-  - `pagespeedinsight-mcp:run_pagespeed`
-  - `pagespeedinsight-mcp:compare_pagespeed`
-  - `pagespeedinsight-mcp:check_plugin_version`
-- Worker health cevabina registry erisimi varsa `version_check` bilgisi (`installed_version`, `latest_version`, `update_available`) eklenir.
-
-Cift giris noktasi davranisi:
-- OpenClaw (MCP istemcileri) paket `bin` yolunu (`pagespeedinsight-mcp`) ve stdio MCP protokolunu kullanir.
-- Paperclip runtime MCP `bin` kismini kullanmaz, `paperclipPlugin.worker` yolunu yukler.
-
-NPX ile:
-```json
-{
-  "mcpServers": {
-    "pagespeedinsight": {
-      "command": "npx",
-      "args": ["-y", "@denizhosgor/pagespeedinsight-mcp"],
-      "env": {
-        "PAGESPEEDINSIGHT_API_KEY": "YOUR_KEY_OPTIONAL"
-      }
-    }
-  }
-}
-```
-
-## Mevcut tool'lar
+MCP (OpenClaw ve MCP istemcileri):
 
 - `run_pagespeed`
 - `compare_pagespeed`
-- `check_plugin_version` (Paperclip guncelleme kontrolu)
-- Ham rapor JSON dosyasi otomatik olarak `report/<url>-<timestamp>.json` altina kaydedilir
-- Kayit dizinini degistirmek icin: `PAGESPEEDINSIGHT_REPORT_DIR=/ozel/yol`
 
-## Raporlama ve sonuc yapisi
+Sadece Paperclip:
 
-- Her tool cagrisi diskte rapor dosyasi uretir ve `saved_report_path` dondurur.
-- Varsayilan klasor: `<calisma-dizini>/report`
-- Dosya adi formati: `<normalize-url>-<timestamp>.json`
-- Timestamp formati: dosya adina uygun UTC ISO benzeri format.
-- `run_pagespeed` icin varsayilan strategy: `desktop`
-- `categories` gonderilmezse varsayilan olarak sadece `performance` kategorisi istenir.
-- Her iki tool icin desteklenen opsiyonel query alanlari:
-  - `utm_campaign`
-  - `utm_source`
-  - `captcha_token` (PSI API'ye `captchaToken` olarak gider)
+- `check_plugin_version`
 
-`run_pagespeed` sonucu:
-- `request_context`
-- `summary`: normalize edilmis skorlar ve metrikler
-- `summary.api_metadata` (`kind`, `analysis_utc_timestamp`, `pagespeed_version` vb.)
-- `summary.lighthouse_context` (`requested_url`, `final_url`, `run_warnings`, `runtime_error`, `config_settings`)
-- `summary.loading_experience.metrics` / `summary.origin_loading_experience.metrics`
-- `saved_report_path`: ham PSI JSON dosya yolu
-- `raw`: sadece `include_raw=true` oldugunda
+## Raporlama
 
-`compare_pagespeed` sonucu:
-- `request_context`
-- `mobile`: mobile ozet
-- `desktop`: desktop ozet
-- `performance_delta_desktop_minus_mobile`
-- `saved_report_path`: birlesik ham JSON dosya yolu
+- Her tool cagrisinda JSON rapor yazilir ve `saved_report_path` doner.
+- Varsayilan rapor klasoru: `<cwd>/report`
+- Dosya formati: `<url>-<timestamp>.json`
+- Klasoru degistirmek icin: `PAGESPEEDINSIGHT_REPORT_DIR=/custom/path`
 
-Kaydedilen rapor dosyasi yapisi:
-- `run_pagespeed`: `request_context`, `response_summary`, `raw_response`
-- `compare_pagespeed`: `request_context`, `comparison_summary`, `raw_response.mobile`, `raw_response.desktop`
+`run_pagespeed` sonucu: `request_context`, `summary`, opsiyonel `raw`, `saved_report_path`.
 
-Ajan kullanım kılavuzu:
-- `docs/tr/PAGESPEEDINSIGHT_TOOL_GUIDE.md`
+`compare_pagespeed` sonucu: `request_context`, `mobile`, `desktop`, `performance_delta_desktop_minus_mobile`, `saved_report_path`.
 
-## OpenClaw skill dosyasını kurma
+## Paperclip Plugin Destegi
 
-Bu paket su dosyayi olusturabilir:
-`app/skills/pagespeedinsight-mcp/SKILL.md`
-Ve `SKILL.md` icerigini `PAGESPEEDINSIGHT_TOOL_GUIDE.md` dosyasindan kopyalar.
+Bu paket Paperclip manifest + worker dosyalarini da icerir (`src/manifest.ts`, `src/worker.ts`).
 
-Secenek A: npm kurulumunda otomatik (onerilen)
+- `package.json > paperclipPlugin`
+- Worker girisi: `dist/worker.js`
+- Manifest girisi: `dist/manifest.js`
+- Yetkiler:
+  - `agent.tools.register`
+  - `http.outbound`
+- Kayitli Paperclip toollari:
+  - `pagespeedinsight-mcp:run_pagespeed`
+  - `pagespeedinsight-mcp:compare_pagespeed`
+  - `pagespeedinsight-mcp:check_plugin_version`
+
+Health cevabinda otomatik registry surum kontrolu varsayilan kapali gelir.
+Gerekirse ac:
+
 ```bash
-OPENCLAW_DIR=/openclaw/tam/yol OPENCLAW_SKILL_OWNER=node:node npm install -g @denizhosgor/pagespeedinsight-mcp
+export PAGESPEEDINSIGHT_HEALTH_VERSION_CHECK=true
 ```
 
-Secenek B: manuel
+## Guvenlik Notlari
+
+- npm lifecycle install script'i (`postinstall`) yoktur.
+- Varsayilan outbound host allowlist: `www.googleapis.com`
+- Gerekirse allowlist degistir:
+
 ```bash
-pagespeedinsight-mcp install-skill --openclaw-dir /openclaw/tam/yol --chown node:node
+export PAGESPEEDINSIGHT_ALLOWED_OUTBOUND_HOSTS=www.googleapis.com
 ```
 
-Dogrudan skills klasoru vererek:
-```bash
-pagespeedinsight-mcp install-skill --skills-dir /openclaw/tam/yol/app/skills
-```
+- HTTP hata cevaplari tool'a donmeden once sadeleştirilir.
 
-Var olani ezmek icin:
-```bash
-pagespeedinsight-mcp install-skill --openclaw-dir /openclaw/tam/yol --force --chown node:node
-```
+## OpenClaw Skill Dosyasi
 
-Ortaminda `node:node` sahipligi zorunluysa, kurulumu `chown` yetkisi olan kullanici ile calistirmalisin (root/sudo).
+- Repo yolu: `openclaw/skills/pagespeed_insights/SKILL.md`
+- Paket icindeki fallback: `skills/SKILL.md`
 
-## Onemli: skill ve tool farki
-
-- `SKILL.md` sadece ajana kullanim kurali verir.
-- Tool taninmasi OpenClaw `mcpServers` konfigrasyonu ile olur.
-- Ajan tool'u gormuyorsa MCP server baglantisi/reload tarafi eksiktir.
-
-## Geliştirme
+## Gelistirme ve Test
 
 ```bash
 npm install
 npm run build
 npm run typecheck
 npm run check
-npm start
-```
-
-## Test
-
-```bash
 npm test
-npm run test:watch
 ```
 
-## Güvenlik ve yayın öncesi kontroller
+## Guvenlik ve Yayin Oncesi Kontroller
 
-Üretim bağımlılıkları güvenlik taraması:
 ```bash
 npm run security:prod
-```
-
-Tüm bağımlılıklar (dev dahil):
-```bash
 npm run security:full
-```
-
-Tek komutla yayın öncesi kontrol:
-```bash
 npm run release:check
 ```
-
-`release:check` şu adımları çalıştırır:
-1. `npm run check` (syntax + test)
-2. `npm run security:prod` (audit)
-3. `npm run pack:dry-run` (paketlenebilirlik)
-
-## npm publish adımları
-
-1. `package.json` içindeki `name` benzersiz olmalı.
-2. Versiyon artır: `npm version patch` (veya `minor`/`major`).
-3. Giriş yap: `npm login`
-4. Yayınla: `npm publish --access public`

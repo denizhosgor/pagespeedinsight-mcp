@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import { clampTimeout, normalizeCategories, normalizeUrl, summarizeReport } from "../../src/server.js";
+import { clampTimeout, normalizeCategories, normalizeUrl, resolveServerVersion, summarizeReport } from "../../src/server.js";
+import { getInstalledPackageInfo } from "../../src/core/version-check.js";
 import { makePsiPayload } from "../helpers/psi-fixtures.js";
 
 describe("normalizeUrl", () => {
@@ -10,6 +11,11 @@ describe("normalizeUrl", () => {
 
   it("keeps url as-is when protocol exists", () => {
     expect(normalizeUrl("https://ikinokta360.com")).toBe("https://ikinokta360.com");
+  });
+
+  it("rejects non-http and non-https schemes", () => {
+    expect(() => normalizeUrl("file:///etc/passwd")).toThrow("Only HTTP and HTTPS URLs are allowed.");
+    expect(() => normalizeUrl("javascript:alert(1)")).toThrow("Only HTTP and HTTPS URLs are allowed.");
   });
 });
 
@@ -41,5 +47,11 @@ describe("summarizeReport", () => {
     expect(summary.top_opportunities.length).toBeGreaterThan(0);
     expect(summary.top_opportunities[0].audit_id).toBe("modern-image-formats");
     expect(summary.top_opportunities[0].estimated_savings_ms).toBe(600);
+  });
+});
+
+describe("resolveServerVersion", () => {
+  it("matches package version", () => {
+    expect(resolveServerVersion()).toBe(getInstalledPackageInfo().version);
   });
 });

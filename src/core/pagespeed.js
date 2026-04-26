@@ -5,16 +5,36 @@ export const PSI_ENDPOINT = "https://www.googleapis.com/pagespeedonline/v5/runPa
 export const DEFAULT_TIMEOUT_SECONDS = 60;
 export const DEFAULT_CATEGORIES = ["performance"];
 export const DEFAULT_REPORT_DIR_NAME = "report";
+export const DEFAULT_ALLOWED_OUTBOUND_HOSTS = ["www.googleapis.com"];
 
 export function normalizeUrl(url) {
   const trimmed = String(url || "").trim();
   if (!trimmed) {
     throw new Error("URL cannot be empty.");
   }
-  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-    return `https://${trimmed}`;
+
+  const schemeMatch = trimmed.match(/^([a-zA-Z][a-zA-Z\d+\-.]*):/);
+  if (schemeMatch) {
+    const scheme = schemeMatch[1].toLowerCase();
+    if (scheme !== "http" && scheme !== "https") {
+      throw new Error("Only HTTP and HTTPS URLs are allowed.");
+    }
   }
-  return trimmed;
+
+  const candidate = schemeMatch ? trimmed : `https://${trimmed}`;
+  let parsed;
+  try {
+    parsed = new URL(candidate);
+  } catch {
+    throw new Error("URL is invalid.");
+  }
+  if (!parsed.hostname) {
+    throw new Error("URL hostname is required.");
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Only HTTP and HTTPS URLs are allowed.");
+  }
+  return candidate;
 }
 
 export function clampTimeout(timeoutSeconds) {
@@ -23,6 +43,37 @@ export function clampTimeout(timeoutSeconds) {
   if (n < 5) return 5;
   if (n > 180) return 180;
   return Math.trunc(n);
+}
+
+export function getAllowedOutboundHosts() {
+  const raw = String(process.env.PAGESPEEDINSIGHT_ALLOWED_OUTBOUND_HOSTS || "").trim();
+  if (!raw) return DEFAULT_ALLOWED_OUTBOUND_HOSTS;
+  const hosts = raw
+    .split(",")
+    .map((item) => item.trim().toLowerCase())
+    .filter(Boolean);
+  return hosts.length > 0 ? hosts : DEFAULT_ALLOWED_OUTBOUND_HOSTS;
+}
+
+export function assertAllowedOutboundHost(endpoint, allowedHosts = getAllowedOutboundHosts()) {
+  const url = new URL(String(endpoint));
+  const host = String(url.hostname || "").trim().toLowerCase();
+  if (!allowedHosts.includes(host)) {
+    throw new Error(`Outbound host is not allowed: ${host}`);
+  }
+}
+
+function toSafeErrorMessage(input) {
+  const text = String(input || "").trim();
+  if (!text) return "";
+  return text.replace(/\s+/g, " ").slice(0, 240);
+}
+
+async function formatHttpError(response) {
+  const status = Number(response?.status) || 0;
+  const statusText = toSafeErrorMessage(response?.statusText);
+  const statusPart = statusText ? `${status} ${statusText}` : String(status);
+  return `PageSpeed API request failed: HTTP ${statusPart}`;
 }
 
 export function normalizeCategories(categories) {
@@ -285,13 +336,14 @@ export async function fetchPsi(targetUrl, strategy, categories, locale, timeoutS
     searchParams.set("captchaToken", String(requestMeta.captcha_token));
   }
 
-  const apiKey = String(process.env.PAGESPEEDINSIGHT_API_KEY || "").trim();
+  const apiKey = String(process.env.PAGESPEEDINSIGHT_API_KEY || process.env.GOOGLE_API_KEY || "").trim();
   if (apiKey) {
     searchParams.set("key", apiKey);
   }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), normalizedTimeout * 1000);
+  assertAllowedOutboundHost(PSI_ENDPOINT);
 
   let response;
   try {
@@ -304,13 +356,17 @@ export async function fetchPsi(targetUrl, strategy, categories, locale, timeoutS
   }
 
   if (!response.ok) {
-    const body = await response.text();
-    throw new Error(`PageSpeed API request failed: HTTP ${response.status} ${body}`);
+    throw new Error(await formatHttpError(response));
   }
 
   const payload = await response.json();
   if (payload?.error) {
-    throw new Error(`PageSpeed API error: ${JSON.stringify(payload.error)}`);
+    const code = typeof payload.error?.code === "number" ? String(payload.error.code) : "";
+    const message = toSafeErrorMessage(payload.error?.message || "Unknown API error.");
+    if (code) {
+      throw new Error(`PageSpeed API error (${code}): ${message}`);
+    }
+    throw new Error(`PageSpeed API error: ${message}`);
   }
 
   return payload;

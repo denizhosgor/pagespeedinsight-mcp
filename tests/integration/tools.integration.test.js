@@ -20,6 +20,7 @@ function mockOkJson(payload) {
 describe("tool handlers", () => {
   beforeEach(() => {
     process.env.PAGESPEEDINSIGHT_API_KEY = "";
+    process.env.GOOGLE_API_KEY = "";
     reportDir = path.join("/tmp", `psi-test-report-${Date.now()}-${Math.floor(Math.random() * 100000)}`);
     process.env.PAGESPEEDINSIGHT_REPORT_DIR = reportDir;
     global.fetch = vi.fn();
@@ -28,6 +29,7 @@ describe("tool handlers", () => {
   afterEach(() => {
     global.fetch = originalFetch;
     delete process.env.PAGESPEEDINSIGHT_REPORT_DIR;
+    delete process.env.GOOGLE_API_KEY;
     fs.rmSync(reportDir, { recursive: true, force: true });
     vi.restoreAllMocks();
   });
@@ -96,5 +98,43 @@ describe("tool handlers", () => {
     expect(savedJson.raw_response.mobile.id).toBe("https://ikinokta360.com/");
     expect(savedJson.raw_response.desktop.id).toBe("https://ikinokta360.com/");
     expect(savedJson.comparison_summary.performance_delta_desktop_minus_mobile).toBe(28);
+  });
+
+  it("uses GOOGLE_API_KEY when PAGESPEEDINSIGHT_API_KEY is not set", async () => {
+    const payload = makePsiPayload({ performanceScore: 0.77 });
+    process.env.GOOGLE_API_KEY = "google-key-fallback";
+    global.fetch.mockResolvedValue(mockOkJson(payload));
+
+    await runPagespeedTool({
+      url: "https://ikinokta360.com",
+      strategy: "desktop"
+    });
+
+    const requestUrl = new URL(global.fetch.mock.calls[0][0]);
+    expect(requestUrl.searchParams.get("key")).toBe("google-key-fallback");
+  });
+
+  it("redacts HTTP error body details from thrown messages", async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 400,
+      statusText: "Bad Request",
+      json: async () => ({ error: { message: "do-not-leak-secret-token" } }),
+      text: async () => "do-not-leak-secret-token"
+    });
+
+    await expect(
+      runPagespeedTool({
+        url: "https://ikinokta360.com",
+        strategy: "mobile"
+      })
+    ).rejects.toThrow(/PageSpeed API request failed: HTTP 400 Bad Request/);
+
+    await expect(
+      runPagespeedTool({
+        url: "https://ikinokta360.com",
+        strategy: "mobile"
+      })
+    ).rejects.not.toThrow(/do-not-leak-secret-token/);
   });
 });
